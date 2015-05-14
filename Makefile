@@ -1,15 +1,16 @@
-CXX=clang
-CXXFLAGS=-g -O2 -fPIC -Wall -Wextra -std=c++11 -Isrc -Iinclude $(OPTFLAGS)
+CC=cc #clang
+CFLAGS=-g -fPIC -Wall -Wextra -Isrc -Iinclude $(OPTFLAGS)
+CXXFLAGS=-g -fPIC -Wall -Wextra -Isrc -Iinclude $(OPTFLAGS)
 CPPFLAGS=-DNDEBUG
-LDFLAGS=-lstdc++ -lreadline
+LDFLAGS=-lreadline -lstdc++
 LIBS=-ldl $(OPTLIBS)
 PREFIX?=/usr/local
 
-SOURCES=$(wildcard src/**/*.cpp src/*.cpp)
+SOURCES=$(wildcard src/**/*.cpp src/*.cpp src/*.c)
 OBJECTS=$(patsubst %.cpp,%.o,$(SOURCES))
 
 TARGET=bin/lisp
-TARGET_SOURCES=$(wildcard targets/**/*.cpp targets/*.cpp)
+TARGET_SOURCES=$(wildcard targets/main.c)
 
 LIB=build/lisp.a
 SHARED_LIB=$(patsubst %.a,%.so,$(LIB))
@@ -26,7 +27,7 @@ $(TARGET): $(TARGET_SOURCES) $(LIB)
 
 # Compiles shared library
 $(SHARED_LIB): $(LIB) $(OBJECTS)
-	$(CC) -shared -o $@ $(OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ $(OBJECTS)
 
 # Compiles library
 $(LIB): build $(OBJECTS)

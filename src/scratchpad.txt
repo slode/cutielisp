@@ -1,0 +1,33 @@
+
+Atom
+read_atom_from_file(FILE *infile)
+{
+  int c;
+  static char buf[255];
+  char *ptr = buf;
+
+  do {
+    c = getc(infile);
+    if (c == ';')
+      do c = getc(infile); while (c != '\n' && c != EOF);
+  } while (isspace(c));
+    switch (c) {
+      case EOF:
+        return(end_of_input_token);
+      case '(':
+        return(left_paren_token);
+      case ')':
+        return(right_paren_token);
+      case '.':
+        return(dot_token);
+      default:
+        *ptr++ = c;
+        while ((c = getc(infile)) != EOF && !isspace(c) && c != '(' && c != ')')
+          *ptr++ = c;
+        /* Return the unused character to the input. */
+        if (c != EOF)
+          ungetc(c, infile);
+        *ptr = '\0';
+        return(make_symbol(buf));
+    }
+}
