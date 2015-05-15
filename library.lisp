@@ -1,4 +1,5 @@
 (define (> a b)
+  ;; Defines the greater-than operator
   (if (< a b) nil T))
 
 (define (not a)

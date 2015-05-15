@@ -23,11 +23,13 @@ struct Atom {
     ATOM_BUILTIN,
     ATOM_CLOSURE,
     ATOM_MACRO,
+    ATOM_STRING,
   } type;
 
   union {
     struct Pair *pair;
     char* symbol;
+    char* string;
     long int integer;
     Builtin builtin;
   } value;

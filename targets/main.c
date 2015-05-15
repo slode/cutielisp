@@ -13,6 +13,7 @@ static Atom sym_table = {ATOM_NIL, {0}};
 
 Atom cons(Atom car_val, Atom cdr_val);
 Atom make_integer(long x);
+Atom make_string(const char *s);
 Atom make_symbol(const char *s);
 
 void print_expr(Atom atom);
@@ -33,6 +34,13 @@ Atom make_integer(long x) {
   return p;
 }
 
+Atom make_string(const char *s) {
+  Atom a;
+  a.type = ATOM_STRING;
+  a.value.string = strdup(s);
+  return a;
+}
+ 
 Atom make_symbol(const char *s) {
   Atom a, p;
 
@@ -272,6 +280,9 @@ int builtin_eq(Atom args, Atom *result)
     case ATOM_MACRO:
       eq = (a.value.pair == b.value.pair);
       break;
+    case ATOM_STRING:
+      eq = (strcmp(a.value.string, b.value.string) == 0);
+      break;
     case ATOM_SYMBOL:
       eq = (a.value.symbol == b.value.symbol);
       break;
@@ -373,6 +384,9 @@ void print_expr(Atom atom) {
     case ATOM_BUILTIN:
       printf("#<BUILTIN:%p>", atom.value.builtin);
       break;
+    case ATOM_STRING:
+      printf("<STRING:\"%s\">", atom.value.string);
+      break;
     case ATOM_SYMBOL:
     case ATOM_CLOSURE:
     case ATOM_MACRO:
@@ -386,6 +400,7 @@ int lex(const char *str, const char **start, const char **end)
   const char *ws = " \t\n";
   const char *delim = "() \t\n";
   const char *prefix = "()\'`";
+  const char *eol = "\n";
 
   str += strspn(str, ws);
 
@@ -400,6 +415,8 @@ int lex(const char *str, const char **start, const char **end)
     *end = str + 1;
   else if (str[0] == ',')
     *end = str + (str[1] == '@' ? 2 : 1);
+  else if (str[0] == ';')
+    *end = str + strcspn(str, eol);
   else
     *end = str + strcspn(str, delim);
 
@@ -429,8 +446,9 @@ int parse_simple(const char *start, const char *end, Atom *result)
 
   if (strcmp(buf, "NIL") == 0)
     *result = nil;
-  else
+  else {
     *result = make_symbol(buf);
+  }
 
   free(buf);
 
@@ -518,6 +536,9 @@ int read_expr(const char *input, const char **end, Atom *result)
       token[1] == '@' ? "UNQUOTE-SPLICING" : "UNQUOTE"),
       cons(nil, nil));
     return read_expr(*end, end, &car(cdr(*result)));
+  } else if (token[0] == ';') {
+    // Found a comment. Skip until newline and continue reading.
+    return read_expr(*end, end, result);
   }
   else {
     return parse_simple(token, *end, result);
@@ -603,6 +624,10 @@ int eval_expr(Atom expr, Atom env, Atom *result)
   Error err;
 
   if (expr.type == ATOM_SYMBOL) {
+    if (expr.value.symbol[0] == ':') {
+      *result = expr;
+      return Error_OK;
+    }
     return env_get(env, expr, result);
   } else if (expr.type != ATOM_PAIR) {
     *result = expr;
@@ -805,7 +830,6 @@ int main() {
     err = read_expr(p, &p, &sexpr);
 
     if (!err) {
-      print_expr(sexpr);
       err = eval_expr(sexpr, env, &result);
     }
 
