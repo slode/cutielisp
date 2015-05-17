@@ -242,6 +242,105 @@ int builtin_less(Atom args, Atom *result)
 
   return Error_OK;
 }
+
+int builtin_stringeq(Atom args, Atom *result)
+{
+  Atom a, b;
+
+  if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
+    return Error_Args;
+
+  a = car(args);
+  b = car(cdr(args));
+
+  if (a.type != ATOM_STRING || b.type != ATOM_STRING)
+    return Error_Type;
+
+  *result = (strcmp(a.value.string, b.value.string) == 0) ? make_symbol("T") : nil;
+
+  return Error_OK;
+}
+
+int builtin_stringless(Atom args, Atom *result)
+{
+  Atom a, b;
+
+  if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
+    return Error_Args;
+
+  a = car(args);
+  b = car(cdr(args));
+
+  if (a.type != ATOM_STRING || b.type != ATOM_STRING)
+    return Error_Type;
+
+
+  char *s1 = a.value.string, *s2 = b.value.string;
+  int index = 0;
+  while( (*s1 != '\0') && (*s1 == *s2) ){
+      s1++; 
+      s2++;
+      index++;
+  }
+  *result = (*s1 < *s2) ? make_integer(index) : nil;
+  return Error_OK;
+}
+
+int builtin_stringconcat(Atom args, Atom *result)
+{
+  Atom a, b;
+
+  if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
+    return Error_Args;
+
+  a = car(args);
+  b = car(cdr(args));
+
+  if (a.type != ATOM_STRING || b.type != ATOM_STRING)
+    return Error_Type;
+
+  char *buf = malloc(strlen(a.value.string) + strlen(b.value.string) + 1);
+  strcat(buf, a.value.string);
+  strcat(buf, b.value.string);
+  *result = make_string(buf);
+  free(buf);
+  return Error_OK;
+}
+
+int builtin_stringsubstr(Atom args, Atom *result)
+{
+  Atom a, b, c;
+
+  if (nilp(args) || nilp(cdr(args)) || nilp(cdr(cdr(args))) || !nilp(cdr(cdr(cdr(args)))))
+    return Error_Args;
+
+  a = car(args);
+  b = car(cdr(args));
+  c = car(cdr(cdr(args)));
+
+  if (a.type != ATOM_STRING || b.type != ATOM_INTEGER || !(c.type == ATOM_INTEGER || c.type == ATOM_NIL))
+    return Error_Type;
+
+  int maxlen = strlen(a.value.string);
+  int start = b.value.integer, len = 0;
+  if (c.type == ATOM_NIL) {
+    len = maxlen - start;
+  } else {
+    len = c.value.integer;
+  }
+
+  if (start + len > maxlen) {
+    return Error_OutOfBounds;
+  }
+
+  char *buf = malloc(maxlen + 1);
+  strncpy(buf, a.value.string + start, len);
+  *result = make_string(buf);
+  free(buf);
+  return Error_OK;
+}
+
+
 int apply(Atom fn, Atom args, Atom *result);
 int builtin_apply(Atom args, Atom *result)
 {
@@ -385,7 +484,7 @@ void print_expr(Atom atom) {
       printf("#<BUILTIN:%p>", atom.value.builtin);
       break;
     case ATOM_STRING:
-      printf("<STRING:\"%s\">", atom.value.string);
+      printf("\"%s\"", atom.value.string);
       break;
     case ATOM_SYMBOL:
     case ATOM_CLOSURE:
@@ -469,8 +568,9 @@ int read_string(const char *input, const char **end, Atom *result)
 
   buf = malloc(*end - start + 1);
   p = buf;
-  while (start != *end)
+  while (start != *end) {
     *p++ = *start, ++start;
+  }
   *p = '\0';
   *end+=1; // Swallow the following \"
 
@@ -643,6 +743,7 @@ int apply(Atom fn, Atom args, Atom *result)
   return Error_OK;
 }
 
+void load_file(Atom env, const char *path);
 
 int eval_expr(Atom expr, Atom env, Atom *result)
 {
@@ -743,6 +844,21 @@ int eval_expr(Atom expr, Atom env, Atom *result)
       macro.type = ATOM_MACRO;
       *result = name;
       return env_set(env, name, macro);
+    } else if (strcmp(op.value.symbol, "LOAD-FILE") == 0) {
+      Atom a;
+
+      if (nilp(args))
+        return Error_Args;
+
+      a = car(args);
+
+      if (a.type != ATOM_STRING)
+        return Error_Type;
+
+      load_file(env, a.value.string);
+      *result = make_symbol("T");
+      return Error_OK;
+
     }
   }
 
@@ -842,6 +958,12 @@ int main() {
   env_set(env, make_symbol("EQ?"), make_builtin(builtin_eq));
   env_set(env, make_symbol("PAIR?"), make_builtin(builtin_pairp));
   env_set(env, make_symbol("T"), make_symbol("T"));
+
+  env_set(env, make_symbol("STRING-EQUAL"), make_builtin(builtin_stringeq));
+  env_set(env, make_symbol("STRING-LESSP"), make_builtin(builtin_stringless));
+  env_set(env, make_symbol("STRING-CONCAT"), make_builtin(builtin_stringconcat));
+  env_set(env, make_symbol("STRING-SUBSTR"), make_builtin(builtin_stringsubstr));
+
   load_file(env, "library.lisp");
 
   char *input;
@@ -877,6 +999,9 @@ int main() {
         break;
       case Error_DivideByZero:
         puts("Division-by-zero error.");
+        break;
+      case Error_OutOfBounds:
+        puts("Index out of bounds.");
         break;
     }
     free(input);

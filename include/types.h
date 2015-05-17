@@ -8,6 +8,7 @@ typedef enum {
   Error_Args,
   Error_Type,
   Error_DivideByZero,
+  Error_OutOfBounds,
 } Error;
 
 

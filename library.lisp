@@ -2,6 +2,9 @@
   ;; Defines the greater-than operator
   (if (< a b) nil T))
 
+(defmacro (set! a b)
+  (define a b))
+
 (define (not a)
   (if a nil T))
 
@@ -39,8 +42,24 @@
 (define (append a b) (foldr cons b a))
 
 (define (caar x) (car (car x)))
-
 (define (cadr x) (car (cdr x)))
+(define (cdar x) (cdr (car x)))
+(define (cddr x) (cdr (cdr x)))
+
+(define (macro-expand expr)
+  (if (not (pair? expr))
+      expr
+      (let ((keyword (car expr)))
+        (cond ((equal? keyword 'QUOTE) expr)
+        ((equal? keyword 'LAMBDA)
+         (list 'LAMBDA
+               (cadr expr)
+         (macro-expand (caddr expr))))
+        (else
+         (let ((expander (get-macro-expander keyword)))
+     (if expander
+         (macro-expand (expander expr))
+         (map macro-expand expr))))))))
 
 (defmacro (quasiquote x)
   (if (pair? x)
@@ -55,10 +74,54 @@
                     (list 'quasiquote (cdr x)))))
       (list 'quote x)))
 
+(define (cond . list)
+  (if (pair? (car list))
+    (if (eq? nil (caar list))
+      (cdar list)
+      (cond (cdr list)))
+    nil))
+
+(define (cond2 . list)
+  (car list))
+
+(define (cond3 . a)
+  (if (car a)
+    (if (pair? (car a))
+      (if (eq? nil (caar a))
+        (car (cdar a))
+        (cond3 (cdr a)))
+      nil)
+    nil))
 
 (defmacro (let defs . body)
   `((lambda ,(map car defs) ,@body)
     ,@(map cadr defs)))
 
-(DEFMACRO (IGNORE X)
-  `(QUOTE ,X))
+(defmacro (ignore x)
+  `(quote ,x))
+
+(defmacro (when condition body)
+    `(if ,condition (progn ,@body)))
+
+;;; String operations
+
+(define (string-not-lessp a b)
+  (string-lessp b a))
+
+(define (string-greaterp a b) 
+  (string-lessp b a))
+
+;; Needs to return index of mismatch
+(define (string-not-equal a b)
+  (if (string-equal a b)
+    nil
+    (if (string-lessp a b)
+      (string-lessp a b)
+      (string-greaterp a b))))
+
+(define string= string-equal)
+(define string/= string-not-equal)
+(define string< string-lessp)
+(define string> string-greaterp)
+
+
