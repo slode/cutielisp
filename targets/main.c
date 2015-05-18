@@ -543,9 +543,13 @@ void print_expr(Atom atom) {
     case ATOM_STRING:
       printf("\"%s\"", atom.value.string);
       break;
-    case ATOM_SYMBOL:
     case ATOM_CLOSURE:
+      printf("#<CLOSURE>");
+      break;
     case ATOM_MACRO:
+      printf("#<MACRO>");
+      break;
+    case ATOM_SYMBOL:
       printf("%s", atom.value.symbol);
       break;
   }
