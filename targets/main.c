@@ -162,7 +162,7 @@ int builtin_divide(Atom args, Atom *result)
   if (b.value.integer == 0)
     return Error_DivideByZero;
 
-  *result = make_integer(a.value.integer - b.value.integer);
+  *result = make_integer(a.value.integer / b.value.integer);
 
   return Error_OK;
 }

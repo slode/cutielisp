@@ -9,7 +9,7 @@ PREFIX?=/usr/local
 SOURCES=$(wildcard src/**/*.cpp src/*.cpp src/*.c)
 OBJECTS=$(patsubst %.cpp,%.o,$(SOURCES))
 
-TARGET=bin/lisp
+TARGET=bin/cutie
 TARGET_SOURCES=$(wildcard targets/main.c)
 
 LIB=build/lisp.a
