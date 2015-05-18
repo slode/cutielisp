@@ -1,7 +1,11 @@
 (define (> a b)
   ;; Defines the greater-than operator
   (if (< a b) nil T))
+(define (abs x) (if (< x 0) (- x) x))
+(define (min x y) (if (> x y) y x))
+(define (max x y) (min y x))
 
+;; This is probably not correct
 (defmacro (set! a b)
   (define a b))
 
@@ -40,6 +44,10 @@
       nil))
 
 (define (append a b) (foldr cons b a))
+(define (nth pos list)
+  (if (= 0 pos)
+    (car list)
+    (nth (- pos 1) (cdr list))))
 
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
@@ -124,4 +132,15 @@
 (define string< string-lessp)
 (define string> string-greaterp)
 
+(define +
+  (let ((old+ +))
+    (lambda xs (foldl old+ 0 xs))))
+(define *
+  (let ((old* *))
+    (lambda xs (foldl old* 1 xs))))
 
+(define fact
+ (lambda (n)
+   (if (< n 2)
+       1
+     (* n (fact (- n 1))))))

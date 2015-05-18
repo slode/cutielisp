@@ -409,6 +409,43 @@ int builtin_pairp(Atom args, Atom *result)
   return Error_OK;
 }
 
+int builtin_stringp(Atom args, Atom *result)
+{
+  if (nilp(args) || !nilp(cdr(args)))
+    return Error_Args;
+
+  *result = (car(args).type == ATOM_STRING) ? make_symbol("T") : nil;
+  return Error_OK;
+}
+
+int builtin_symbolp(Atom args, Atom *result)
+{
+  if (nilp(args) || !nilp(cdr(args)))
+    return Error_Args;
+
+  *result = (car(args).type == ATOM_SYMBOL) ? make_symbol("T") : nil;
+  return Error_OK;
+}
+
+int builtin_numberp(Atom args, Atom *result)
+{
+  if (nilp(args) || !nilp(cdr(args)))
+    return Error_Args;
+
+  *result = (car(args).type == ATOM_INTEGER) ? make_symbol("T") : nil;
+  return Error_OK;
+}
+
+int builtin_error(Atom args, Atom *result)
+{
+  if (nilp(args) || !nilp(cdr(args)))
+    return Error_Args;
+
+  *result = (car(args).type == ATOM_STRING) ? car(args) : nil;
+  return Error_Syntax;
+}
+
+
 /* ENV */
 Atom create_env(Atom parent) {
   return cons(parent, nil);
@@ -452,6 +489,26 @@ int env_set(Atom env, Atom symbol, Atom value)
   cdr(env) = cons(b, cdr(env));
 
   return Error_OK;
+}
+
+int env_set_existing(Atom env, Atom symbol, Atom value)
+{
+  Atom parent = car(env);
+  Atom bs = cdr(env);
+
+  while (!nilp(bs)) {
+    Atom b = car(bs);
+    if (car(b).value.symbol == symbol.value.symbol) {
+      cdr(b) = value;
+      return Error_OK;
+    }
+    bs = cdr(bs);
+  }
+
+  if (nilp(parent))
+    return Error_UnBound;
+
+  return env_set_existing(parent, symbol, value);
 }
 
 /* IO */
@@ -802,6 +859,44 @@ int eval_expr(Atom expr, Atom env, Atom *result)
       *result = sym;
       return env_set(env, sym, val);
 
+    } else if (strcmp(op.value.symbol, "SET!") == 0) {
+      Atom sym, val;
+
+      if (nilp(args) || nilp(cdr(args)))
+        return Error_Args;
+
+      sym = car(args);
+      if (sym.type == ATOM_PAIR) {
+        err = make_closure(env, cdr(sym), cdr(args), &val);
+        sym = car(sym);
+        if (sym.type != ATOM_SYMBOL)
+          return Error_Type;
+      } else if (sym.type == ATOM_SYMBOL) {
+        if (!nilp(cdr(cdr(args))))
+          return Error_Args;
+        err = eval_expr(car(cdr(args)), env, &val);
+      } else {
+        return Error_Type;
+      }
+
+      if (err)
+        return err;
+
+      *result = sym;
+      return env_set_existing(env, sym, val);
+
+    } else if (strcmp(op.value.symbol, "PROGN") == 0) {
+      Atom body = args;
+
+      /* Evaluate the body */
+      while (!nilp(body)) {
+        Error err = eval_expr(car(body), env, result);
+        if (err)
+          return err;
+        body = cdr(body);
+      }
+      return Error_OK;
+
     } else if (strcmp(op.value.symbol, "LAMBDA") == 0) {
       if (nilp(args) || nilp(cdr(args)))
         return Error_Args;
@@ -844,7 +939,8 @@ int eval_expr(Atom expr, Atom env, Atom *result)
       macro.type = ATOM_MACRO;
       *result = name;
       return env_set(env, name, macro);
-    } else if (strcmp(op.value.symbol, "LOAD-FILE") == 0) {
+
+    } else if (strcmp(op.value.symbol, "LOAD") == 0) {
       Atom a;
 
       if (nilp(args))
@@ -858,7 +954,6 @@ int eval_expr(Atom expr, Atom env, Atom *result)
       load_file(env, a.value.string);
       *result = make_symbol("T");
       return Error_OK;
-
     }
   }
 
@@ -957,6 +1052,10 @@ int main() {
   env_set(env, make_symbol("APPLY"), make_builtin(builtin_apply));
   env_set(env, make_symbol("EQ?"), make_builtin(builtin_eq));
   env_set(env, make_symbol("PAIR?"), make_builtin(builtin_pairp));
+  env_set(env, make_symbol("SYMBOL?"), make_builtin(builtin_symbolp));
+  env_set(env, make_symbol("STRING?"), make_builtin(builtin_stringp));
+  env_set(env, make_symbol("NUMBER?"), make_builtin(builtin_numberp));
+  env_set(env, make_symbol("ERROR"), make_builtin(builtin_error));
   env_set(env, make_symbol("T"), make_symbol("T"));
 
   env_set(env, make_symbol("STRING-EQUAL"), make_builtin(builtin_stringeq));
