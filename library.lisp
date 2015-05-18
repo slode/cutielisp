@@ -1,7 +1,7 @@
 (define (> a b)
   ;; Defines the greater-than operator
   (if (< a b) nil T))
-(define (abs x) (if (< x 0) (- x) x))
+(define (abs x) (if (< x 0) (- 0 x) x))
 (define (min x y) (if (> x y) y x))
 (define (max x y) (min y x))
 

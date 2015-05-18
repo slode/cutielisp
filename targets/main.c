@@ -952,6 +952,10 @@ int eval_expr(Atom expr, Atom env, Atom *result)
 
       a = car(args);
 
+      err = eval_expr(a, env, &a);
+      if (err)
+        return err;
+
       if (a.type != ATOM_STRING)
         return Error_Type;
 
