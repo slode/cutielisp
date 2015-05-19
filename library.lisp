@@ -121,7 +121,7 @@
 (defmacro (or-list body)
   `(if ,body
      (if (null? (car ,body))
-       (and-list (cdr ,body))
+       (or-list (cdr ,body))
        T)
      nil))
 
