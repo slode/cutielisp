@@ -1,17 +1,27 @@
-(define (> a b)
   ;; Defines the greater-than operator
-  (if (< a b) nil T))
+(define (> a b) (if (< a b) nil T))
 (define (abs x) (if (< x 0) (- 0 x) x))
 (define (min x y) (if (> x y) y x))
 (define (max x y) (min y x))
+(define (null? x) (eq? x nil))
+(define (not a) (if a nil T))
 
-;; This is probably not correct
-(defmacro (set! a b)
-  (define a b))
+;;; List stuff
+(define (first sx) (car sx))
+(define (rest sx) (cdr sx))
 
-(define (not a)
-  (if a nil T))
+(define (length list)
+  (if (null list)
+    0
+    (+ 1 (length (rest list)))))
 
+(define (list . items)
+  (foldr cons nil items))
+
+(define (reverse list)
+  (foldl (lambda (a x) (cons x a)) nil list))
+
+;;; Functional things
 (define (foldl proc init list)
   (if list
       (foldl proc
@@ -24,12 +34,6 @@
       (proc (car list)
             (foldr proc init (cdr list)))
       init))
-
-(define (list . items)
-  (foldr cons nil items))
-
-(define (reverse list)
-  (foldl (lambda (a x) (cons x a)) nil list))
 
 (define (unary-map proc list)
   (foldr (lambda (x rest) (cons (proc x) rest))
@@ -49,10 +53,14 @@
     (car list)
     (nth (- pos 1) (cdr list))))
 
-(define (caar x) (car (car x)))
-(define (cadr x) (car (cdr x)))
-(define (cdar x) (cdr (car x)))
-(define (cddr x) (cdr (cdr x)))
+(define (caar x)  (car (car x)))
+(define (caaar x) (car (car (car x))))
+(define (cadr x)  (car (cdr x)))
+(define (caadr x) (car (car (cdr x))))
+(define (cdar x)  (cdr (car x)))
+(define (cddar x) (cdr (cdr (car x))))
+(define (cddr x)  (cdr (cdr x)))
+(define (cdddr x) (cdr (cdr (cdr x))))
 
 (define (macro-expand expr)
   (if (not (pair? expr))
@@ -69,6 +77,7 @@
          (macro-expand (expander expr))
          (map macro-expand expr))))))))
 
+;;; QUASIQUOTE
 (defmacro (quasiquote x)
   (if (pair? x)
       (if (eq? (car x) 'unquote)
@@ -82,25 +91,6 @@
                     (list 'quasiquote (cdr x)))))
       (list 'quote x)))
 
-(define (cond . list)
-  (if (pair? (car list))
-    (if (eq? nil (caar list))
-      (cdar list)
-      (cond (cdr list)))
-    nil))
-
-(define (cond2 . list)
-  (car list))
-
-(define (cond3 . a)
-  (if (car a)
-    (if (pair? (car a))
-      (if (eq? nil (caar a))
-        (car (cdar a))
-        (cond3 (cdr a)))
-      nil)
-    nil))
-
 (defmacro (let defs . body)
   `((lambda ,(map car defs) ,@body)
     ,@(map cadr defs)))
@@ -108,11 +98,37 @@
 (defmacro (ignore x)
   `(quote ,x))
 
-(defmacro (when condition body)
-    `(if ,condition (progn ,@body)))
+;; Usage: (when (< x 2) (set! x 2)) ??
+(defmacro (when condition . body)
+    `(if ,condition (progn ,@body) nil))
+
+(defmacro (unless condition . body)
+    `(if ,condition nil (progn ,@body)))
+
+(defmacro (cond condition . body)
+    `(if ,condition nil (progn ,@body)))
+
+(defmacro (and-list body)
+  `(if ,body
+     (if (null? (car ,body))
+       nil
+       (and-list (cdr ,body)))
+     T))
+
+(define (and . body)
+  (and-list body))
+
+(defmacro (or-list body)
+  `(if ,body
+     (if (null? (car ,body))
+       (and-list (cdr ,body))
+       T)
+     nil))
+
+(define (or . body)
+  (or-list body))
 
 ;;; String operations
-
 (define (string-not-lessp a b)
   (string-lessp b a))
 
@@ -132,6 +148,7 @@
 (define string< string-lessp)
 (define string> string-greaterp)
 
+;;; list based arithmetic
 (define +
   (let ((old+ +))
     (lambda xs (foldl old+ 0 xs))))
@@ -139,8 +156,13 @@
   (let ((old* *))
     (lambda xs (foldl old* 1 xs))))
 
-(define fact
- (lambda (n)
+;;; Basic tests
+(define (fact n)
    (if (< n 2)
        1
-     (* n (fact (- n 1))))))
+     (* n (fact (- n 1)))))
+
+(define (fib n)
+  (if (> 1 n)
+    1
+    (+ (fib (- n 1)) (fib (- n 2))))) 
