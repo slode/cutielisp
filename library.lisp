@@ -1,5 +1,3 @@
-  ;; C
-  ;; C
   ;; Defines the greater-than operator
 (define (> a b) (if (< a b) nil T))
 (define (abs x) (if (< x 0) (- 0 x) x))
@@ -7,6 +5,16 @@
 (define (max x y) (min y x))
 (define (null? x) (eq? x nil))
 (define (not a) (if a nil T))
+
+(defmacro (cond-list cases)
+  (if (cases)
+      `(if ,(caar cases)
+           (progn ,@(cdar cases))
+           (cond-list ,(cdr cases)))
+      nil))
+
+(define (cond . c)
+  (cond-list c))
 
 ;;; List stuff
 (define (first sx) (car sx))
@@ -129,16 +137,6 @@
     `(if ,condition 
        nil 
        (progn ,@body)))
-
-(defmacro (cond-list clauses)
-    (clauses))
-
-;    `(if ,test 
-;       (progn ,@forms)
-;       (cond ,@(cdr clauses)))))
-
-(define (cond . clauses)
-  (cond-list clauses))
 
 (defmacro (for-each fn seq)
   `(progn (map nil ,fn ,seq) t))

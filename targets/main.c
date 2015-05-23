@@ -16,6 +16,26 @@ Atom make_integer(long x);
 Atom make_string(const char *s);
 Atom make_symbol(const char *s);
 
+Error make_error(
+    int type,
+    const char *message,
+    const char *file_name,
+    const char *function_name,
+    int line_number)
+{
+  Error err;
+  err.type = type;
+  err.message = strdup(message);
+  err.file_name = strdup(file_name);
+  err.function_name = strdup(function_name);
+  err.line_number = line_number;
+  return err;
+}
+
+#define ERROR(type, message) make_error(type, message, __FILE__, __FUNCTION__, __LINE__)
+#define ERROR_OK() make_error(0, "", __FILE__, __FUNCTION__, __LINE__)
+#define ERROR_RAISED(err) (err.type != Error_OK)
+
 void print_expr(Atom atom);
 
 Atom cons(Atom car_val, Atom cdr_val) {
@@ -68,12 +88,12 @@ Atom make_builtin(Builtin fn)
 }
 
 int listp(Atom expr);
-int make_closure(Atom env, Atom args, Atom body, Atom *result)
+Error make_closure(Atom env, Atom args, Atom body, Atom *result)
 {
   Atom p;
 
   if (!listp(body))
-    return Error_Syntax;
+    return ERROR(Error_Syntax, "Function body must be a list");
 
   /* Check argument names are all symbols */
   p = args;
@@ -81,198 +101,198 @@ int make_closure(Atom env, Atom args, Atom body, Atom *result)
     if (p.type == ATOM_SYMBOL) {
       break;
     } else if (p.type != ATOM_PAIR || car(p).type != ATOM_SYMBOL) {
-      return Error_Type;
+      return ERROR(Error_Type, "Arguments need to be symbols");
     }
     p = cdr(p);
   }
 
   *result = cons(env, cons(args, body));
   result->type = ATOM_CLOSURE;
-  return Error_OK;
+  return ERROR_OK();
 }
 
 /* Builtins */
-int builtin_add(Atom args, Atom *result)
+Error builtin_add(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be integers.");
 
   *result = make_integer(a.value.integer + b.value.integer);
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_subtract(Atom args, Atom *result)
+Error builtin_subtract(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be integers.");
 
   *result = make_integer(a.value.integer - b.value.integer);
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_multiply(Atom args, Atom *result)
+Error builtin_multiply(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be integers.");
 
   *result = make_integer(a.value.integer * b.value.integer);
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_divide(Atom args, Atom *result)
+Error builtin_divide(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be integers.");
 
   if (b.value.integer == 0)
-    return Error_DivideByZero;
+    return ERROR(Error_DivideByZero, "Divisor is zero.");
 
   *result = make_integer(a.value.integer / b.value.integer);
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_car(Atom args, Atom *result)
+Error builtin_car(Atom args, Atom *result)
 {
   if (nilp(args) || !nilp(cdr(args)))
-    return Error_Args;
+    return ERROR(Error_Args, "Argument required.");
 
   if (nilp(car(args)))
     *result = nil;
   else if (car(args).type != ATOM_PAIR) {
-    return Error_Type;
+    return ERROR(Error_Type, "Argument must be pair.");
   } else
     *result = car(car(args));
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_cdr(Atom args, Atom *result)
+Error builtin_cdr(Atom args, Atom *result)
 {
   if (nilp(args) || !nilp(cdr(args)))
-    return Error_Args;
+    return ERROR(Error_Args, "Argument required.");
 
   if (nilp(car(args)))
     *result = nil;
   else if (car(args).type != ATOM_PAIR)
-    return Error_Type;
+    return ERROR(Error_Type, "Argument must be pair.");
   else
     *result = cdr(car(args));
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_cons(Atom args, Atom *result)
+Error builtin_cons(Atom args, Atom *result)
 {
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   *result = cons(car(args), car(cdr(args)));
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_numeq(Atom args, Atom *result)
+Error builtin_numeq(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be integers.");
 
   *result = (a.value.integer == b.value.integer) ? make_symbol("T") : nil;
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_less(Atom args, Atom *result)
+Error builtin_less(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be integers.");
 
   *result = (a.value.integer < b.value.integer) ? make_symbol("T") : nil;
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_stringeq(Atom args, Atom *result)
+Error builtin_stringeq(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_STRING || b.type != ATOM_STRING)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be strings.");
 
   *result = (strcmp(a.value.string, b.value.string) == 0) ? make_symbol("T") : nil;
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_stringless(Atom args, Atom *result)
+Error builtin_stringless(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_STRING || b.type != ATOM_STRING)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be strings.");
 
 
   char *s1 = a.value.string, *s2 = b.value.string;
@@ -283,43 +303,43 @@ int builtin_stringless(Atom args, Atom *result)
       index++;
   }
   *result = (*s1 < *s2) ? make_integer(index) : nil;
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_stringconcat(Atom args, Atom *result)
+Error builtin_stringconcat(Atom args, Atom *result)
 {
   Atom a, b;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
 
   if (a.type != ATOM_STRING || b.type != ATOM_STRING)
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be strings.");
 
   char *buf = malloc(strlen(a.value.string) + strlen(b.value.string) + 1);
   strcat(buf, a.value.string);
   strcat(buf, b.value.string);
   *result = make_string(buf);
   free(buf);
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_stringsubstr(Atom args, Atom *result)
+Error builtin_stringsubstr(Atom args, Atom *result)
 {
   Atom a, b, c;
 
   if (nilp(args) || nilp(cdr(args)) || nilp(cdr(cdr(args))) || !nilp(cdr(cdr(cdr(args)))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two or three arguments.");
 
   a = car(args);
   b = car(cdr(args));
   c = car(cdr(cdr(args)));
 
   if (a.type != ATOM_STRING || b.type != ATOM_INTEGER || !(c.type == ATOM_INTEGER || c.type == ATOM_NIL))
-    return Error_Type;
+    return ERROR(Error_Type, "Arguments must be <string> <integer> <optional integer>.");
 
   int maxlen = strlen(a.value.string);
   int start = b.value.integer, len = 0;
@@ -330,41 +350,41 @@ int builtin_stringsubstr(Atom args, Atom *result)
   }
 
   if (start + len > maxlen) {
-    return Error_OutOfBounds;
+    return ERROR(Error_OutOfBounds, "Index out of bounds.");
   }
 
   char *buf = malloc(maxlen + 1);
   strncpy(buf, a.value.string + start, len);
   *result = make_string(buf);
   free(buf);
-  return Error_OK;
+  return ERROR_OK();
 }
 
 
-int apply(Atom fn, Atom args, Atom *result);
-int builtin_apply(Atom args, Atom *result)
+Error apply(Atom fn, Atom args, Atom *result);
+Error builtin_apply(Atom args, Atom *result)
 {
   Atom fn;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   fn = car(args);
   args = car(cdr(args));
 
   if (!listp(args))
-    return Error_Syntax;
+    return ERROR(Error_Syntax, "Arguments must be a list.");
 
   return apply(fn, args, result);
 }
 
-int builtin_eq(Atom args, Atom *result)
+Error builtin_eq(Atom args, Atom *result)
 {
   Atom a, b;
   int eq;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires two arguments.");
 
   a = car(args);
   b = car(cdr(args));
@@ -391,58 +411,60 @@ int builtin_eq(Atom args, Atom *result)
     case ATOM_BUILTIN:
       eq = (a.value.builtin == b.value.builtin);
       break;
+    case ATOM_ERROR:
+      eq = 0;
     }
   } else {
     eq = 0;
   }
 
   *result = eq ? make_symbol("T") : nil;
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_pairp(Atom args, Atom *result)
+Error builtin_pairp(Atom args, Atom *result)
 {
   if (nilp(args) || !nilp(cdr(args)))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires a single argument.");
 
   *result = (car(args).type == ATOM_PAIR) ? make_symbol("T") : nil;
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_stringp(Atom args, Atom *result)
+Error builtin_stringp(Atom args, Atom *result)
 {
   if (nilp(args) || !nilp(cdr(args)))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires a single argument.");
 
   *result = (car(args).type == ATOM_STRING) ? make_symbol("T") : nil;
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_symbolp(Atom args, Atom *result)
+Error builtin_symbolp(Atom args, Atom *result)
 {
   if (nilp(args) || !nilp(cdr(args)))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires a single argument.");
 
   *result = (car(args).type == ATOM_SYMBOL) ? make_symbol("T") : nil;
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_numberp(Atom args, Atom *result)
+Error builtin_numberp(Atom args, Atom *result)
 {
   if (nilp(args) || !nilp(cdr(args)))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires a single argument.");
 
   *result = (car(args).type == ATOM_INTEGER) ? make_symbol("T") : nil;
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int builtin_error(Atom args, Atom *result)
+Error builtin_error(Atom args, Atom *result)
 {
   if (nilp(args) || !nilp(cdr(args)))
-    return Error_Args;
+    return ERROR(Error_Args, "Requires a single argument.");
 
   *result = (car(args).type == ATOM_STRING) ? car(args) : nil;
-  return Error_Syntax;
+  return ERROR(Error_Syntax, car(args).value.string);
 }
 
 
@@ -451,7 +473,7 @@ Atom create_env(Atom parent) {
   return cons(parent, nil);
 }
 
-int env_get(Atom env, Atom symbol, Atom *result)
+Error env_get(Atom env, Atom symbol, Atom *result)
 {
   Atom parent = car(env);
   Atom bs = cdr(env);
@@ -460,18 +482,18 @@ int env_get(Atom env, Atom symbol, Atom *result)
     Atom b = car(bs);
     if (car(b).value.symbol == symbol.value.symbol) {
       *result = cdr(b);
-      return Error_OK;
+      return ERROR_OK();
     }
     bs = cdr(bs);
   }
 
   if (nilp(parent))
-    return Error_UnBound;
+    return ERROR(Error_UnBound, symbol.value.symbol);
 
   return env_get(parent, symbol, result);
 }
 
-int env_set(Atom env, Atom symbol, Atom value)
+Error env_set(Atom env, Atom symbol, Atom value)
 {
   Atom bs = cdr(env);
   Atom b = nil;
@@ -480,7 +502,7 @@ int env_set(Atom env, Atom symbol, Atom value)
     b = car(bs);
     if (car(b).value.symbol == symbol.value.symbol) {
       cdr(b) = value;
-      return Error_OK;
+      return ERROR_OK();
     }
     bs = cdr(bs);
   }
@@ -488,10 +510,10 @@ int env_set(Atom env, Atom symbol, Atom value)
   b = cons(symbol, value);
   cdr(env) = cons(b, cdr(env));
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int env_set_existing(Atom env, Atom symbol, Atom value)
+Error env_set_existing(Atom env, Atom symbol, Atom value)
 {
   Atom parent = car(env);
   Atom bs = cdr(env);
@@ -500,13 +522,13 @@ int env_set_existing(Atom env, Atom symbol, Atom value)
     Atom b = car(bs);
     if (car(b).value.symbol == symbol.value.symbol) {
       cdr(b) = value;
-      return Error_OK;
+      return ERROR_OK();
     }
     bs = cdr(bs);
   }
 
   if (nilp(parent))
-    return Error_UnBound;
+    return ERROR(Error_UnBound, symbol.value.symbol);
 
   return env_set_existing(parent, symbol, value);
 }
@@ -549,13 +571,14 @@ void print_expr(Atom atom) {
     case ATOM_MACRO:
       printf("#<MACRO>");
       break;
+    case ATOM_ERROR:
     case ATOM_SYMBOL:
       printf("%s", atom.value.symbol);
       break;
   }
 }
 
-int lex(const char *str, const char **start, const char **end)
+Error lex(const char *str, const char **start, const char **end)
 {
   const char *ws = " \t\n";
   const char *delim = "() \t\n";
@@ -566,7 +589,7 @@ int lex(const char *str, const char **start, const char **end)
 
   if (str[0] == '\0') {
     *start = *end = NULL;
-    return Error_Syntax;
+    return ERROR(Error_Syntax, "End-of-input reached.");
   }
 
   *start = str;
@@ -580,12 +603,12 @@ int lex(const char *str, const char **start, const char **end)
   else
     *end = str + strcspn(str, delim);
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int read_expr(const char *input, const char **end, Atom *result);
+Error read_expr(const char *input, const char **end, Atom *result);
 
-int parse_simple(const char *start, const char *end, Atom *result)
+Error parse_simple(const char *start, const char *end, Atom *result)
 {
   char *buf, *p;
 
@@ -594,7 +617,7 @@ int parse_simple(const char *start, const char *end, Atom *result)
   if (p == end) {
     result->type = ATOM_INTEGER;
     result->value.integer = val;
-    return Error_OK;
+    return ERROR_OK();
   }
 
   /* NIL or symbol */
@@ -612,10 +635,10 @@ int parse_simple(const char *start, const char *end, Atom *result)
 
   free(buf);
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int read_string(const char *input, const char **end, Atom *result)
+Error read_string(const char *input, const char **end, Atom *result)
 {
   const char *eos = "\"";
   char *buf, *p;
@@ -637,10 +660,10 @@ int read_string(const char *input, const char **end, Atom *result)
 
   *result = make_string(buf);
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
-int read_list(const char *start, const char **end, Atom *result)
+Error read_list(const char *start, const char **end, Atom *result)
 {
   Atom p;
 
@@ -653,33 +676,33 @@ int read_list(const char *start, const char **end, Atom *result)
     Error err;
 
     err = lex(*end, &token, end);
-    if (err)
+    if (ERROR_RAISED(err))
       return err;
 
     if (token[0] == ')')
-      return Error_OK;
+      return ERROR_OK();
 
     if (token[0] == '.' && *end - token == 1) {
       /* Improper list */
       if (nilp(p))
-        return Error_Syntax;
+        return ERROR(Error_Syntax, "Improper list error");
 
       err = read_expr(*end, end, &item);
-      if (err)
+      if (ERROR_RAISED(err))
         return err;
 
       cdr(p) = item;
 
       /* Read the closing ')' */
       err = lex(*end, &token, end);
-      if (!err && token[0] != ')')
-        err = Error_Syntax;
+      if (!ERROR_RAISED(err) && token[0] != ')')
+        err = ERROR(Error_Syntax, "Error syntax!");
 
       return err;
     }
 
     err = read_expr(token, end, &item);
-    if (err)
+    if (ERROR_RAISED(err))
       return err;
 
     if (nilp(p)) {
@@ -693,20 +716,20 @@ int read_list(const char *start, const char **end, Atom *result)
   }
 }
 
-int read_expr(const char *input, const char **end, Atom *result)
+Error read_expr(const char *input, const char **end, Atom *result)
 {
   const char *token;
   Error err;
 
   err = lex(input, &token, end);
-  if (err)
+  if (ERROR_RAISED(err))
     return err;
 
   if (token[0] == '(') {
     return read_list(*end, end, result);
   }
   else if (token[0] == ')') {
-    return Error_Syntax;
+    return ERROR(Error_Syntax, "')' reached unexpectedly.");
   }
   else if (token[0] == '\'') {
     *result = cons(make_symbol("QUOTE"), cons(nil, nil));
@@ -763,15 +786,15 @@ Atom copy_list(Atom list)
   return a;
 }
 
-int eval_expr(Atom expr, Atom env, Atom *result);
-int apply(Atom fn, Atom args, Atom *result)
+Error eval_expr(Atom expr, Atom env, Atom *result);
+Error apply(Atom fn, Atom args, Atom *result)
 {
   Atom env, arg_names, body;
 
   if (fn.type == ATOM_BUILTIN)
     return (*fn.value.builtin)(args, result);
   else if (fn.type != ATOM_CLOSURE)
-    return Error_Type;
+    return ERROR(Error_Type, "Type must be closure.");
 
   env = create_env(car(fn));
   arg_names = car(cdr(fn));
@@ -785,28 +808,28 @@ int apply(Atom fn, Atom args, Atom *result)
       break;
     } 
     if (nilp(args))
-      return Error_Args;
+      return ERROR(Error_Args, "Argument required.");
     env_set(env, car(arg_names), car(args));
     arg_names = cdr(arg_names);
     args = cdr(args);
   }
   if (!nilp(args))
-    return Error_Args;
+    return ERROR(Error_Args, "Argument required.");
 
   /* Evaluate the body */
   while (!nilp(body)) {
     Error err = eval_expr(car(body), env, result);
-    if (err)
+    if (ERROR_RAISED(err))
       return err;
     body = cdr(body);
   }
 
-  return Error_OK;
+  return ERROR_OK();
 }
 
 void load_file(Atom env, const char *path);
 
-int eval_expr(Atom expr, Atom env, Atom *result)
+Error eval_expr(Atom expr, Atom env, Atom *result)
 {
   Atom op, args, p;
   Error err;
@@ -814,16 +837,16 @@ int eval_expr(Atom expr, Atom env, Atom *result)
   if (expr.type == ATOM_SYMBOL) {
     if (expr.value.symbol[0] == ':') {
       *result = expr;
-      return Error_OK;
+      return ERROR_OK();
     }
     return env_get(env, expr, result);
   } else if (expr.type != ATOM_PAIR) {
     *result = expr;
-    return Error_OK;
+    return ERROR_OK();
   }
 
   if (!listp(expr)) {
-    return Error_Syntax;
+    return ERROR(Error_Syntax, "Expression must be list.");
   }
 
   op = car(expr);
@@ -832,32 +855,32 @@ int eval_expr(Atom expr, Atom env, Atom *result)
   if (op.type == ATOM_SYMBOL) {
     if (strcmp(op.value.symbol, "QUOTE") == 0) {
       if (nilp(args) || !nilp(cdr(args)))
-        return Error_Args;
+        return ERROR(Error_Args, "QUOTE requires an argument.");
 
       *result = car(args);
-      return Error_OK;
+      return ERROR_OK();
 
     } else if (strcmp(op.value.symbol, "DEFINE") == 0) {
       Atom sym, val;
 
       if (nilp(args) || nilp(cdr(args)))
-        return Error_Args;
+        return ERROR(Error_Args, "DEFINE requires two arguments.");
 
       sym = car(args);
       if (sym.type == ATOM_PAIR) {
         err = make_closure(env, cdr(sym), cdr(args), &val);
         sym = car(sym);
         if (sym.type != ATOM_SYMBOL)
-          return Error_Type;
+          return ERROR(Error_Type, "DEFINE first argument must be symbol.");
       } else if (sym.type == ATOM_SYMBOL) {
         if (!nilp(cdr(cdr(args))))
-          return Error_Args;
+          return ERROR(Error_Args, "DEFINE argument error.");
         err = eval_expr(car(cdr(args)), env, &val);
       } else {
-        return Error_Type;
+        return ERROR(Error_Type, "DEFINE argument error.");
       }
 
-      if (err)
+      if (ERROR_RAISED(err))
         return err;
 
       *result = sym;
@@ -867,23 +890,23 @@ int eval_expr(Atom expr, Atom env, Atom *result)
       Atom sym, val;
 
       if (nilp(args) || nilp(cdr(args)))
-        return Error_Args;
+        return ERROR(Error_Args, "SET! requires two arguments.");
 
       sym = car(args);
       if (sym.type == ATOM_PAIR) {
         err = make_closure(env, cdr(sym), cdr(args), &val);
         sym = car(sym);
         if (sym.type != ATOM_SYMBOL)
-          return Error_Type;
+          return ERROR(Error_Type, "SET! first argument not symbol");
       } else if (sym.type == ATOM_SYMBOL) {
         if (!nilp(cdr(cdr(args))))
-          return Error_Args;
+          return ERROR(Error_Args, "SET! argument error.");
         err = eval_expr(car(cdr(args)), env, &val);
       } else {
-        return Error_Type;
+        return ERROR(Error_Type, "SET! argument error.");
       }
 
-      if (err)
+      if (ERROR_RAISED(err))
         return err;
 
       *result = sym;
@@ -895,15 +918,15 @@ int eval_expr(Atom expr, Atom env, Atom *result)
       /* Evaluate the body */
       while (!nilp(body)) {
         Error err = eval_expr(car(body), env, result);
-        if (err)
+        if (ERROR_RAISED(err))
           return err;
         body = cdr(body);
       }
-      return Error_OK;
+      return ERROR_OK();
 
     } else if (strcmp(op.value.symbol, "LAMBDA") == 0) {
       if (nilp(args) || nilp(cdr(args)))
-        return Error_Args;
+        return ERROR(Error_Args, "LAMBDA requires two arguments.");
 
       return make_closure(env, car(args), cdr(args), result);
 
@@ -912,10 +935,10 @@ int eval_expr(Atom expr, Atom env, Atom *result)
 
       if (nilp(args) || nilp(cdr(args)) || nilp(cdr(cdr(args)))
           || !nilp(cdr(cdr(cdr(args)))))
-        return Error_Args;
+        return ERROR(Error_Args, "IF requires three arguments.");
 
       err = eval_expr(car(args), env, &cond);
-      if (err)
+      if (ERROR_RAISED(err))
         return err;
 
       val = nilp(cond) ? car(cdr(cdr(args))) : car(cdr(args));
@@ -926,18 +949,18 @@ int eval_expr(Atom expr, Atom env, Atom *result)
       Error err;
 
       if (nilp(args) || nilp(cdr(args)))
-        return Error_Args;
+        return ERROR(Error_Args, "DEFMACRO requires two arguments.");
 
       if (car(args).type != ATOM_PAIR)
-        return Error_Syntax;
+        return ERROR(Error_Syntax, "DEFMACRO syntax error.");
 
       name = car(car(args));
       if (name.type != ATOM_SYMBOL)
-        return Error_Type;
+        return ERROR(Error_Type, "DEFMACRO type error.");
 
       err = make_closure(env, cdr(car(args)),
         cdr(args), &macro);
-      if (err)
+      if (ERROR_RAISED(err))
         return err;
 
       macro.type = ATOM_MACRO;
@@ -948,26 +971,26 @@ int eval_expr(Atom expr, Atom env, Atom *result)
       Atom a;
 
       if (nilp(args))
-        return Error_Args;
+        return ERROR(Error_Args, "LOAD takes one argument.");
 
       a = car(args);
 
       err = eval_expr(a, env, &a);
-      if (err)
+      if (ERROR_RAISED(err))
         return err;
 
       if (a.type != ATOM_STRING)
-        return Error_Type;
+        return ERROR(Error_Type, "LOAD argument must be a string.");
 
       load_file(env, a.value.string);
       *result = make_symbol("T");
-      return Error_OK;
+      return ERROR_OK();
     }
   }
 
   /* Evaluate operator */
   err = eval_expr(op, env, &op);
-  if (err)
+  if (ERROR_RAISED(err))
     return err;
 
   /* Is it a macro? */
@@ -975,7 +998,7 @@ int eval_expr(Atom expr, Atom env, Atom *result)
     Atom expansion;
     op.type = ATOM_CLOSURE;
     err = apply(op, args, &expansion);
-    if (err)
+    if (ERROR_RAISED(err))
       return err;
     return eval_expr(expansion, env, result);
   }
@@ -985,7 +1008,7 @@ int eval_expr(Atom expr, Atom env, Atom *result)
   p = args;
   while (!nilp(p)) {
     err = eval_expr(car(p), env, &car(p));
-    if (err)
+    if (ERROR_RAISED(err))
       return err;
 
     p = cdr(p);
@@ -1017,6 +1040,7 @@ char *slurp(const char *path)
   return buf;
 }
 
+void print_error(Error err);
 void load_file(Atom env, const char *path)
 {
   char *text;
@@ -1026,10 +1050,11 @@ void load_file(Atom env, const char *path)
   if (text) {
     const char *p = text;
     Atom expr;
-    while (read_expr(p, &p, &expr) == Error_OK) {
+    while (read_expr(p, &p, &expr).type == Error_OK) {
       Atom result;
       Error err = eval_expr(expr, env, &result);
-      if (err) {
+      if (ERROR_RAISED(err)) {
+        print_error(err);
         printf("Error in expression:\n\t");
         print_expr(expr);
         putchar('\n');
@@ -1042,7 +1067,37 @@ void load_file(Atom env, const char *path)
   }
 }
 
-int main() {
+void print_error(Error err)
+{
+  switch (err.type) {
+    case Error_OK:
+      puts("No error!");
+      break;
+    case Error_Syntax:
+      puts("Syntax error.");
+      break;
+    case Error_UnBound:
+      puts("Symbol not bound.");
+      break;
+    case Error_Args:
+      puts("Wrong number of arguments.");
+      break;
+    case Error_Type:
+      puts("Wrong type.");
+      break;
+    case Error_DivideByZero:
+      puts("Division-by-zero error.");
+      break;
+    case Error_OutOfBounds:
+      puts("Index out of bounds.");
+      break;
+  }
+  printf("Error: '%s' in function %s %s:%d\n",
+      err.message, err.function_name, err.file_name, err.line_number);
+}
+
+int main()
+{
 
   puts("CuteLisp Version 0.0.1");
   puts("Press Ctrl+c to Exit\n");
@@ -1065,7 +1120,6 @@ int main() {
   env_set(env, make_symbol("NUMBER?"), make_builtin(builtin_numberp));
   env_set(env, make_symbol("ERROR"), make_builtin(builtin_error));
   env_set(env, make_symbol("T"), make_symbol("T"));
-
   env_set(env, make_symbol("STRING-EQUAL"), make_builtin(builtin_stringeq));
   env_set(env, make_symbol("STRING-LESSP"), make_builtin(builtin_stringless));
   env_set(env, make_symbol("STRING-CONCAT"), make_builtin(builtin_stringconcat));
@@ -1084,32 +1138,14 @@ int main() {
     const char *p = input;
     err = read_expr(p, &p, &sexpr);
 
-    if (!err) {
+    if (!ERROR_RAISED(err)) {
       err = eval_expr(sexpr, env, &result);
     }
 
-    switch (err) {
-      case Error_OK:
-        print_expr(result);
-        break;
-      case Error_Syntax:
-        puts("Syntax error.");
-        break;
-      case Error_UnBound:
-        puts("Symbol not bound.");
-        break;
-      case Error_Args:
-        puts("Wrong number of arguments.");
-        break;
-      case Error_Type:
-        puts("Wrong type.");
-        break;
-      case Error_DivideByZero:
-        puts("Division-by-zero error.");
-        break;
-      case Error_OutOfBounds:
-        puts("Index out of bounds.");
-        break;
+    if (ERROR_RAISED(err)) {
+      print_error(err);
+    } else {
+      print_expr(result);
     }
     free(input);
     putchar('\n');
