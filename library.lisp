@@ -1,3 +1,5 @@
+  ;; C
+  ;; C
   ;; Defines the greater-than operator
 (define (> a b) (if (< a b) nil T))
 (define (abs x) (if (< x 0) (- 0 x) x))
@@ -15,11 +17,30 @@
     0
     (+ 1 (length (rest list)))))
 
+(define (last list)
+  (if (cdr list)
+    (last (cdr list))
+    (car list)))
+
 (define (list . items)
   (foldr cons nil items))
 
 (define (reverse list)
   (foldl (lambda (a x) (cons x a)) nil list))
+
+(defmacro (append . ls)
+  `(foldr cons () ,@ls))
+
+(define (circular lst)
+  (set! (cdr (last lst)) lst))
+
+(define (merge proc ls1 ls2 f)
+  (foldr 
+    (lambda(a b) 
+      (if (f a b)
+        (cons a b)
+        (cons b a)))
+    ls1 ls2))
 
 ;;; Functional things
 (define (foldl proc init list)
@@ -100,13 +121,27 @@
 
 ;; Usage: (when (< x 2) (set! x 2)) ??
 (defmacro (when condition . body)
-    `(if ,condition (progn ,@body) nil))
+    `(if ,condition
+       (progn ,@body)
+       nil))
 
 (defmacro (unless condition . body)
-    `(if ,condition nil (progn ,@body)))
+    `(if ,condition 
+       nil 
+       (progn ,@body)))
 
-(defmacro (cond condition . body)
-    `(if ,condition nil (progn ,@body)))
+(defmacro (cond-list clauses)
+    (clauses))
+
+;    `(if ,test 
+;       (progn ,@forms)
+;       (cond ,@(cdr clauses)))))
+
+(define (cond . clauses)
+  (cond-list clauses))
+
+(defmacro (for-each fn seq)
+  `(progn (map nil ,fn ,seq) t))
 
 (defmacro (and-list body)
   `(if ,body
@@ -166,3 +201,45 @@
   (if (> 1 n)
     1
     (+ (fib (- n 1)) (fib (- n 2))))) 
+
+(define Y
+  (lambda (h)
+    ((lambda (x) (x x))
+     (lambda (g)
+       (h (lambda args (apply (g g) args)))))))
+ 
+(define facy
+  (Y
+    (lambda (f)
+      (lambda (x)
+        (if (< x 2)
+            1
+            (* x (f (- x 1))))))))
+ 
+(define fiby
+  (Y
+    (lambda (f)
+      (lambda (x)
+        (if (< x 2)
+            x
+            (+ (f (- x 1)) (f (- x 2))))))))
+
+(define (ceiling x) x)
+
+(define (merge-sort list)
+  (if (small list) list
+    (merge-lists
+    (merge-sort (left-half list))
+    (merge-sort (right-half list)))))
+
+(define (small list)
+  (or (eq (length list) 0) (eq (length list) 1)))
+
+(define (right-half list)
+  (last list (ceiling (/ (length list) 2))))
+
+(define (left-half list)
+  (ldiff list (right-half list)))
+
+(define (merge-lists list1 list2)
+  (merge 'list list1 list2 '<))
