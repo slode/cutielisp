@@ -2,3 +2,4 @@ bin
 build/
 src/*.o
 tests/tests.log
+tests/*_tests
