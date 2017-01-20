@@ -6,15 +6,23 @@
 (define (null? x) (eq? x nil))
 (define (not a) (if a nil T))
 
+(defmacro (eval-cond c . cx)
+  `(if ,c
+    (progn ,@cx)
+    nil))
+
+(defmacro (unwrap x)
+  `(,@x))
+
 (defmacro (cond-list cases)
-  (if (cases)
-      `(if ,(caar cases)
-           (progn ,@(cdar cases))
-           (cond-list ,(cdr cases)))
+  `(if ,cases
+      (if (caar ,cases)
+           (progn ,@cases)
+           (cond-list (cdr ,cases)))
       nil))
 
-(define (cond . c)
-  (cond-list c))
+(define (cond . b)
+  (cond-list b))
 
 ;;; List stuff
 (define (first sx) (car sx))

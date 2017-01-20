@@ -18,10 +18,6 @@ typedef struct Error {
   int line_number;
 } Error;
 
-
-struct Atom;
-typedef Error (*Builtin)(struct Atom args, struct Atom *result);
-
 struct Atom {
   enum {
     ATOM_NIL,
@@ -50,5 +46,7 @@ struct Pair {
 };
 
 typedef struct Atom Atom;
+
+typedef Error (*Builtin)(struct Atom args, struct Atom *result);
 
 #endif

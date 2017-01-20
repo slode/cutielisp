@@ -1,4 +1,5 @@
 echo "Running unit tests:"
+echo $(date)
 
 for i in tests/*_tests
 do
