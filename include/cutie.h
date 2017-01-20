@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 typedef struct Error {
   enum {
@@ -47,7 +51,6 @@ struct Pair {
 };
 
 typedef struct Atom Atom;
-static const Atom nil;
 
 #define car(p) ((p).value.pair->atom[0])
 #define cdr(p) ((p).value.pair->atom[1])
@@ -127,3 +130,7 @@ Error apply(Atom fn, Atom args, Atom *result);
 /* Load list code */
 char *slurp(const char *path);
 void load_file(Atom env, const char *path);
+
+#ifdef __cplusplus
+}
+#endif

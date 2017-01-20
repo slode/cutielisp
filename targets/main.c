@@ -10,7 +10,7 @@ int main()
   puts("CuteLisp Version 0.0.1");
   puts("Press Ctrl+c to Exit\n");
 
-  Atom env = setup_env(nil);
+  Atom env = setup_env();
   load_file(env, "library.lisp");
 
   char *input;

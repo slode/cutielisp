@@ -30,7 +30,7 @@ class ContestSuite {
   typedef std::vector<Contest*> TestVector;
   TestVector tests_;
   std::string name_;
-  std::auto_ptr<TestReportIface> reporter;
+  std::unique_ptr<TestReportIface> reporter;
 
   static ContestSuite *instance_;
   ContestSuite():reporter(new ConsoleReport()) {}

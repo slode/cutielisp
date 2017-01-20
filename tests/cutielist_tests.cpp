@@ -1,39 +1,29 @@
 #include "contest.h"
-#include <string>
 
-CONTEST_SUITE(contest_suite_test)
-CONTEST_CASE(test_equality) 
+extern "C"
 {
-  CONTEST_EQUAL(1, 1);
-  CONTEST_EQUAL(1.0, 1.0);
-  CONTEST_EQUAL("1", "1");
+#include "cutie.h"
 }
 
-CONTEST_CASE(test_truth) 
+CONTEST_SUITE(cutie_suite_test)
+CONTEST_CASE(test_parser) 
 {
-  CONTEST_TRUE(1 == 1);
-  CONTEST_TRUE(1.0 == 1.0);
-  CONTEST_TRUE(std::string("1") == "1");
-  CONTEST_TRUE(true);
-  CONTEST_TRUE(!false);
+  std::vector<std::string> programs;
+  programs.push_back("(define a 10)");
+  programs.push_back("(set! a 10)");
+  programs.push_back("(1 ' set! 10) 10)");
+  programs.push_back(")£$(1 ' set! 10) 10)");
+
+  for (std::string ps : programs) {
+    const char *p = ps.c_str();
+    Error err;
+    Atom sexpr;
+    err = read_expr((const char*)p, (const char**)&p, &sexpr);
+    CONTEST_EQUAL(err.type, Error::Error_OK);
+  }
 }
 
-int returns_int(int i) {
-  return i;
-}
-
-int raises_exception() {
-  throw "Some text.";
-  return 99;
-}
-
-CONTEST_CASE(test_function_call_test) 
+CONTEST_CASE(test_eval) 
 {
-  CONTEST_EQUAL(returns_int(1), 1);
-  try {
-    raises_exception();
-    CONTEST_TRUE(false);
-  } catch (const char*) {}
 }
-
 CONTEST_SUITE_END

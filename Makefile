@@ -1,8 +1,9 @@
-CC=cc #clang
+CC=gcc #clang
+CXX=g++ #clang
 CFLAGS=-g -fPIC -Wall -Wextra -Isrc -Iinclude $(OPTFLAGS)
-CXXFLAGS=-g -fPIC -Wall -Wextra -Isrc -Iinclude $(OPTFLAGS)
+CXXFLAGS=-g -fPIC -Wall -std=c++11 -Wextra -Isrc -Iinclude $(OPTFLAGS)
 CPPFLAGS=-DNDEBUG
-LDFLAGS=-lreadline -lstdc++
+LDFLAGS=-lreadline  -lstdc++
 LIBS=-ldl $(OPTLIBS)
 PREFIX?=/usr/local
 
