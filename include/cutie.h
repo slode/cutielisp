@@ -1,3 +1,4 @@
+
 typedef struct Error {
   enum {
     Error_OK = 0,
@@ -14,6 +15,9 @@ typedef struct Error {
   const char *function_name;
   int line_number;
 } Error;
+
+struct Atom;
+typedef Error (*Builtin)(struct Atom args, struct Atom *result);
 
 struct Atom {
   enum {
@@ -43,17 +47,11 @@ struct Pair {
 };
 
 typedef struct Atom Atom;
-
-typedef Error (*Builtin)(struct Atom args, struct Atom *result);
+static const Atom nil;
 
 #define car(p) ((p).value.pair->atom[0])
 #define cdr(p) ((p).value.pair->atom[1])
 #define nilp(atom) ((atom).type == ATOM_NIL)
-
-Atom cons(Atom car_val, Atom cdr_val);
-Atom make_integer(long x);
-Atom make_string(const char *s);
-Atom make_symbol(const char *s);
 
 Error make_error(
     int type,
@@ -104,6 +102,8 @@ Error builtin_error(Atom args, Atom *result);
 
 /* ENV */
 Atom create_env(Atom parent);
+Atom setup_env();
+
 Error env_get(Atom env, Atom symbol, Atom *result);
 Error env_set(Atom env, Atom symbol, Atom value);
 Error env_set_existing(Atom env, Atom symbol, Atom value);

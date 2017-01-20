@@ -7,12 +7,12 @@ LIBS=-ldl $(OPTLIBS)
 PREFIX?=/usr/local
 
 SOURCES=$(wildcard src/**/*.cpp src/*.cpp src/*.c)
-OBJECTS=$(patsubst %.cpp,%.o,$(SOURCES))
+OBJECTS=$(patsubst %.c,%.o,$(SOURCES))
 
 TARGET=bin/cutie
 TARGET_SOURCES=$(wildcard targets/main.c)
 
-LIB=build/lisp.a
+LIB=build/cutielisp.a
 SHARED_LIB=$(patsubst %.a,%.so,$(LIB))
 
 # Default build.
