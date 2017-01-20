@@ -18,6 +18,7 @@ int main()
     if (input) { free(input); }
 
     input = readline("cutie> ");
+    if (!input) { return 0; }
     add_history(input);
 
     Error err;
