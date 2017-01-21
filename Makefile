@@ -1,7 +1,7 @@
 CC=gcc #clang
 CXX=g++ #clang
-CFLAGS=-g -fPIC -Wall -Wextra -Isrc -Iinclude $(OPTFLAGS)
-CXXFLAGS=-g -fPIC -Wall -std=c++11 -Wextra -Isrc -Iinclude $(OPTFLAGS)
+CFLAGS=-g0 -fPIC -Wall -Wextra -Isrc -Iinclude $(OPTFLAGS)
+CXXFLAGS=-g0 -fPIC -Wall -std=c++11 -Wextra -Isrc -Iinclude $(OPTFLAGS)
 CPPFLAGS=-DNDEBUG
 LDFLAGS=-lreadline  -lstdc++
 LIBS=-ldl $(OPTLIBS)
