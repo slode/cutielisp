@@ -54,8 +54,8 @@ typedef struct Atom Atom;
 
 #define car(p) ((p).value.pair->atom[0])
 #define cdr(p) ((p).value.pair->atom[1])
-#define nilp(atom) ((atom).type == ATOM_NIL)
 
+int error_raised(Error err);
 Error make_error(
     int type,
     const char *message,
@@ -65,7 +65,7 @@ Error make_error(
 
 #define ERROR(type, message) make_error(type, message, __FILE__, __FUNCTION__, __LINE__)
 #define ERROR_OK() make_error(0, "", __FILE__, __FUNCTION__, __LINE__)
-#define ERROR_RAISED(err) (err.type != Error_OK)
+#define ERROR_RAISED(err) error_raised((err))
 
 
 Atom cons(Atom car_val, Atom cdr_val);
@@ -122,6 +122,7 @@ Error read_list(const char *start, const char **end, Atom *result);
 Error read_expr(const char *input, const char **end, Atom *result);
 
 /* Evaluation */
+int nilp(Atom atom);
 int listp(Atom expr);
 Atom copy_list(Atom list);
 Error eval_expr(Atom expr, Atom env, Atom *result);

@@ -1,4 +1,5 @@
 echo "Running unit tests:"
+echo "Test log" > tests/tests.log
 
 for i in tests/*_tests
 do

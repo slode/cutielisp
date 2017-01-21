@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -764,6 +765,11 @@ Error read_expr(const char *input, const char **end, Atom *result)
   }
 }
 
+int nilp(Atom atom)
+{
+  return atom.type == ATOM_NIL;
+}
+
 /* Evaluation */
 int listp(Atom expr)
 {
@@ -1072,11 +1078,15 @@ void load_file(Atom env, const char *path)
   }
 }
 
+int error_raised(Error err) {
+  return err.type != Error_OK;
+}
+
 void print_error(Error err)
 {
   switch (err.type) {
     case Error_OK:
-      puts("No error!");
+      return;
       break;
     case Error_Syntax:
       puts("Syntax error.");
