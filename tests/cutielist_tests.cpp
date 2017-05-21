@@ -12,6 +12,8 @@ CONTEST_CASE(test_parser)
   programs.push_back("(define a 10)");
   programs.push_back("(set! a 10)");
   programs.push_back("(1 ' set! 10) 10)");
+  programs.push_back("(define a \"test\")");
+  programs.push_back("(define a \"\")");
 
   for (std::string ps : programs) {
     const char *p = ps.c_str();
