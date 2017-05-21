@@ -42,7 +42,7 @@ Error builtin_square(Atom args, Atom *result)
     return ERROR(Error::Error_Args, "Requires one arguments.");
 
   Atom a = car(args);
-  if (a.type != Atom::ATOM_INTEGER)
+  if (a.type != AtomType::ATOM_INTEGER)
     return ERROR(Error::Error_Args, "Argument must be integer");
 
   *result = make_integer(a.value.integer * a.value.integer);
