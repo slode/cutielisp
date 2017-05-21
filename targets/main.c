@@ -13,7 +13,7 @@ int main()
   Atom env = setup_env();
   load_file(env, "library.lisp");
 
-  char *input;
+  char *input = 0;
   while (1) {
     if (input) { free(input); }
 

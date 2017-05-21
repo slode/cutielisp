@@ -1,4 +1,5 @@
   ;; Defines the greater-than operator
+(define eq =)
 (define (> a b) (if (< a b) nil T))
 (define (abs x) (if (< x 0) (- 0 x) x))
 (define (min x y) (if (> x y) y x))
@@ -29,7 +30,7 @@
 (define (rest sx) (cdr sx))
 
 (define (length list)
-  (if (null list)
+  (if (nil list)
     0
     (+ 1 (length (rest list)))))
 
@@ -249,3 +250,11 @@
 
 (define (merge-lists list1 list2)
   (merge 'list list1 list2 '<))
+
+(define (rem a b) (- a (* b (/ a b))))
+(define (list-eq a b) 
+  (if (= (car a) (car b))
+    (list-eq (cdr a) (cdr b))
+    nil
+  )
+)
