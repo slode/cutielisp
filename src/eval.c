@@ -51,8 +51,10 @@ Error apply(Atom fn, Atom args, Atom *result)
 
   if (fn.type == ATOM_BUILTIN)
     return (*fn.value.builtin)(args, result);
-  else if (fn.type != ATOM_CLOSURE)
+  else if (fn.type != ATOM_CLOSURE) {
+    print_expr(fn);
     return ERROR(Error_Type, "Type must be closure.");
+  }
 
   env = create_env(car(fn));
   arg_names = car(cdr(fn));

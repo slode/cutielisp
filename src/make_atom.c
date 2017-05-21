@@ -36,6 +36,13 @@ Atom make_integer(long x) {
   return p;
 }
 
+Atom make_real(double x) {
+  Atom p;
+  p.type = ATOM_REAL;
+  p.value.real = x;
+  return p;
+}
+
 Atom make_string(const char *s) {
   Atom a;
   a.type = ATOM_STRING;

@@ -37,10 +37,18 @@ Error parse_simple(const char *start, const char *end, Atom *result)
   char *buf, *p;
 
   /* Is it an integer? */
-  long val = strtol(start, &p, 10);
+  long ival = strtol(start, &p, 10);
   if (p == end) {
     result->type = ATOM_INTEGER;
-    result->value.integer = val;
+    result->value.integer = ival;
+    return ERROR_OK();
+  }
+
+  /* Is it a real number? */
+  double dval = strtod(start, &p);
+  if (p == end) {
+    result->type = ATOM_REAL;
+    result->value.real = dval;
     return ERROR_OK();
   }
 

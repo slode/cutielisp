@@ -6,6 +6,7 @@
 (define (max x y) (min y x))
 (define (null? x) (eq? x nil))
 (define (not a) (if a nil T))
+(define (to-float a) (* a 1.0))
 
 (defmacro (eval-cond c . cx)
   `(if ,c
@@ -30,7 +31,7 @@
 (define (rest sx) (cdr sx))
 
 (define (length list)
-  (if (nil list)
+  (if (eq? nil list)
     0
     (+ 1 (length (rest list)))))
 

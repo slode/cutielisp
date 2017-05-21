@@ -9,6 +9,9 @@ void print_expr(Atom atom) {
     case ATOM_INTEGER:
       printf("%ld", atom.value.integer);
       break;
+    case ATOM_REAL:
+      printf("%lf", atom.value.real);
+      break;
     case ATOM_PAIR:
       putchar('(');
       print_expr(car(atom));

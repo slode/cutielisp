@@ -1,6 +1,15 @@
 #include <string.h>
 #include <stdlib.h>
+
 #include "cutie.h"
+
+int is_numeric(Atom a) {
+  return a.type == ATOM_REAL || a.type == ATOM_INTEGER;
+}
+
+double get_real_value(Atom a) {
+  return a.type == ATOM_INTEGER ? (double)a.value.integer : a.value.real;
+}
 
 /* Builtins */
 Error builtin_add(Atom args, Atom *result)
@@ -13,10 +22,13 @@ Error builtin_add(Atom args, Atom *result)
   a = car(args);
   b = car(cdr(args));
 
-  if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return ERROR(Error_Type, "Arguments must be integers.");
+  if (!is_numeric(a) || !is_numeric(b))
+    return ERROR(Error_Type, "Arguments must be numeric.");
 
-  *result = make_integer(a.value.integer + b.value.integer);
+  if (a.type == ATOM_REAL || b.type == ATOM_REAL)
+      *result = make_real(get_real_value(a) + get_real_value(b));
+    else
+      *result = make_integer(a.value.integer + b.value.integer);
 
   return ERROR_OK();
 }
@@ -31,10 +43,13 @@ Error builtin_subtract(Atom args, Atom *result)
   a = car(args);
   b = car(cdr(args));
 
-  if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return ERROR(Error_Type, "Arguments must be integers.");
+  if (!is_numeric(a) || !is_numeric(b))
+    return ERROR(Error_Type, "Arguments must be numeric.");
 
-  *result = make_integer(a.value.integer - b.value.integer);
+  if (a.type == ATOM_REAL || b.type == ATOM_REAL)
+      *result = make_real(get_real_value(a) - get_real_value(b));
+    else
+      *result = make_integer(a.value.integer - b.value.integer);
 
   return ERROR_OK();
 }
@@ -49,10 +64,13 @@ Error builtin_multiply(Atom args, Atom *result)
   a = car(args);
   b = car(cdr(args));
 
-  if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return ERROR(Error_Type, "Arguments must be integers.");
+  if (!is_numeric(a) || !is_numeric(b))
+    return ERROR(Error_Type, "Arguments must be numeric.");
 
-  *result = make_integer(a.value.integer * b.value.integer);
+  if (a.type == ATOM_REAL || b.type == ATOM_REAL)
+      *result = make_real(get_real_value(a) * get_real_value(b));
+    else
+      *result = make_integer(a.value.integer * b.value.integer);
 
   return ERROR_OK();
 }
@@ -67,13 +85,55 @@ Error builtin_divide(Atom args, Atom *result)
   a = car(args);
   b = car(cdr(args));
 
+  if (!is_numeric(a) || !is_numeric(b))
+    return ERROR(Error_Type, "Arguments must be numeric.");
+
+  if (get_real_value(b) == 0)
+    return ERROR(Error_DivideByZero, "Divisor is zero.");
+
+  if (a.type == ATOM_REAL || b.type == ATOM_REAL)
+      *result = make_real(get_real_value(a) / get_real_value(b));
+    else
+      *result = make_integer(a.value.integer / b.value.integer);
+
+  return ERROR_OK();
+}
+
+Error builtin_numeq(Atom args, Atom *result)
+{
+  Atom a, b;
+
+  if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
+    return ERROR(Error_Args, "Requires two arguments.");
+
+  a = car(args);
+  b = car(cdr(args));
+
+  if (!is_numeric(a) || !is_numeric(b))
+    return ERROR(Error_Type, "Arguments must be numeric.");
+
+  if (a.type == ATOM_REAL || b.type == ATOM_REAL)
+    *result = (get_real_value(a) == get_real_value(b)) ? make_symbol("T") : nil;
+  else
+    *result = (a.value.integer == b.value.integer) ? make_symbol("T") : nil;
+
+  return ERROR_OK();
+}
+
+Error builtin_less(Atom args, Atom *result)
+{
+  Atom a, b;
+
+  if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
+    return ERROR(Error_Args, "Requires two arguments.");
+
+  a = car(args);
+  b = car(cdr(args));
+
   if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
     return ERROR(Error_Type, "Arguments must be integers.");
 
-  if (b.value.integer == 0)
-    return ERROR(Error_DivideByZero, "Divisor is zero.");
-
-  *result = make_integer(a.value.integer / b.value.integer);
+  *result = (a.value.integer < b.value.integer) ? make_symbol("T") : nil;
 
   return ERROR_OK();
 }
@@ -120,42 +180,6 @@ Error builtin_cons(Atom args, Atom *result)
   return ERROR_OK();
 }
 
-Error builtin_numeq(Atom args, Atom *result)
-{
-  Atom a, b;
-
-  if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return ERROR(Error_Args, "Requires two arguments.");
-
-  a = car(args);
-  b = car(cdr(args));
-
-  if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return ERROR(Error_Type, "Arguments must be integers.");
-
-  *result = (a.value.integer == b.value.integer) ? make_symbol("T") : nil;
-
-  return ERROR_OK();
-}
-
-Error builtin_less(Atom args, Atom *result)
-{
-  Atom a, b;
-
-  if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
-    return ERROR(Error_Args, "Requires two arguments.");
-
-  a = car(args);
-  b = car(cdr(args));
-
-  if (a.type != ATOM_INTEGER || b.type != ATOM_INTEGER)
-    return ERROR(Error_Type, "Arguments must be integers.");
-
-  *result = (a.value.integer < b.value.integer) ? make_symbol("T") : nil;
-
-  return ERROR_OK();
-}
-
 Error builtin_stringeq(Atom args, Atom *result)
 {
   Atom a, b;
@@ -191,7 +215,7 @@ Error builtin_stringless(Atom args, Atom *result)
   char *s1 = a.value.string, *s2 = b.value.string;
   int index = 0;
   while( (*s1 != '\0') && (*s1 == *s2) ){
-      s1++; 
+      s1++;
       s2++;
       index++;
   }
@@ -281,6 +305,7 @@ Error builtin_eq(Atom args, Atom *result)
   a = car(args);
   b = car(cdr(args));
 
+
   if (a.type == b.type) {
     switch (a.type) {
     case ATOM_NIL:
@@ -299,6 +324,8 @@ Error builtin_eq(Atom args, Atom *result)
       break;
     case ATOM_INTEGER:
       eq = (a.value.integer == b.value.integer);
+    case ATOM_REAL:
+      eq = (a.value.real == b.value.real);
       break;
     case ATOM_BUILTIN:
       eq = (a.value.builtin == b.value.builtin);
@@ -346,7 +373,10 @@ Error builtin_numberp(Atom args, Atom *result)
   if (nilp(args) || !nilp(cdr(args)))
     return ERROR(Error_Args, "Requires a single argument.");
 
-  *result = (car(args).type == ATOM_INTEGER) ? make_symbol("T") : nil;
+  if (car(args).type == ATOM_INTEGER || car(args).type == ATOM_REAL)
+    *result = make_symbol("T");
+  else
+    *result = nil;
   return ERROR_OK();
 }
 

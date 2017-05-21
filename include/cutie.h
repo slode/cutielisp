@@ -23,24 +23,28 @@ typedef struct Error {
 struct Atom;
 typedef Error (*Builtin)(struct Atom args, struct Atom *result);
 
-struct Atom {
-enum {
+typedef enum {
   ATOM_NIL,
   ATOM_PAIR,
   ATOM_SYMBOL,
   ATOM_INTEGER,
+  ATOM_REAL,
   ATOM_BUILTIN,
   ATOM_CLOSURE,
   ATOM_MACRO,
   ATOM_STRING,
   ATOM_ERROR,
-} type;
+} AtomType;
+
+struct Atom {
+  AtomType type;
 
 union {
   struct Pair *pair;
   char* symbol;
   char* string;
   long int integer;
+  double real;
   Builtin builtin;
 } value;
 };
@@ -70,6 +74,7 @@ Error make_error(
 
 Atom cons(Atom car_val, Atom cdr_val);
 Atom make_integer(long x);
+Atom make_real(double x);
 Atom make_string(const char *s);
 Atom make_symbol(const char *s);
 Atom make_builtin(Builtin fn);
