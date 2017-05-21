@@ -1,4 +1,4 @@
-  ;; Defines the greater-than operator
+  ;; Defines math
 (define eq =)
 (define (> a b) (if (< a b) nil T))
 (define (abs x) (if (< x 0) (- 0 x) x))
@@ -7,6 +7,16 @@
 (define (null? x) (eq? x nil))
 (define (not a) (if a nil T))
 (define (to-float a) (* a 1.0))
+
+(define (exp a n)
+  (if (> n 0)
+    (exp-pos a n)
+    (/ 1 (exp-pos a (- 0 n)))))
+
+(define (exp-pos a n)
+  (if (= 0 n)
+    1
+    (* a (exp a (- n 1)))))
 
 (defmacro (eval-cond c . cx)
   `(if ,c
@@ -192,6 +202,10 @@
 (define string> string-greaterp)
 
 ;;; list based arithmetic
+(define string-concat
+  (let ((old-sc string-concat))
+    (lambda xs (foldl old-sc "" xs))))
+
 (define +
   (let ((old+ +))
     (lambda xs (foldl old+ 0 xs))))
