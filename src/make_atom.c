@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
+
 #include "cutie.h"
 
-Atom sym_table = {ATOM_NIL, {0}};
 
 Error make_error(
     int type,
@@ -23,7 +23,7 @@ Error make_error(
 Atom cons(Atom car_val, Atom cdr_val) {
   Atom p;
   p.type = ATOM_PAIR;
-  p.value.pair = (struct Pair*)malloc(sizeof(struct Pair));
+  p.value.pair = (struct Pair*)cutie_malloc(sizeof(struct Pair));
   car(p) = car_val;
   cdr(p) = cdr_val;
   return p;
@@ -50,6 +50,8 @@ Atom make_string(const char *s) {
   return a;
 }
  
+Atom sym_table = {ATOM_NIL, {0}};
+
 Atom make_symbol(const char *s) {
   Atom a, p;
 
@@ -98,4 +100,3 @@ Error make_closure(Atom env, Atom args, Atom body, Atom *result)
   result->type = ATOM_CLOSURE;
   return ERROR_OK();
 }
-

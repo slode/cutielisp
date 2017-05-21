@@ -125,6 +125,7 @@ Error parse_simple(const char *start, const char *end, Atom *result);
 Error read_string(const char *input, const char **end, Atom *result);
 Error read_list(const char *start, const char **end, Atom *result);
 Error read_expr(const char *input, const char **end, Atom *result);
+Error cutie_parse(const char *input, Atom *result);
 
 /* Evaluation */
 int nilp(Atom atom);
@@ -136,6 +137,9 @@ Error apply(Atom fn, Atom args, Atom *result);
 /* Load list code */
 char *slurp(const char *path);
 void load_file(Atom env, const char *path);
+
+void* cutie_malloc(unsigned int sz);
+void  cutie_free(void* p);
 
 #ifdef __cplusplus
 }

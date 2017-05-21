@@ -8,7 +8,7 @@ Error lex(const char *str, const char **start, const char **end)
 {
   const char *ws = " \t\n";
   const char *delim = "() \t\n";
-  const char *prefix = "()\'`\"";
+  const char *prefix = "()\'`";
   const char *eol = "\n";
 
   str += strspn(str, ws);
@@ -52,6 +52,26 @@ Error parse_simple(const char *start, const char *end, Atom *result)
     return ERROR_OK();
   }
 
+  /* It is  a string */
+  if (*start == '\"') {
+    const char *eos = "\"";
+    end = ++start;
+    do {
+      end = end + strcspn(end, eos);
+    } while (*(end-1) == '\\');
+
+    buf = malloc(end - start + 1);
+    p = buf;
+    while (start != end)
+      *p++ = *start, ++start;
+    *p = '\0';
+
+    *result = make_string(buf);
+
+    free(buf);
+    return ERROR_OK();
+  }
+
   /* NIL or symbol */
   buf = malloc(end - start + 1);
   p = buf;
@@ -66,31 +86,6 @@ Error parse_simple(const char *start, const char *end, Atom *result)
   }
 
   free(buf);
-
-  return ERROR_OK();
-}
-
-Error read_string(const char *input, const char **end, Atom *result)
-{
-  const char *eos = "\"";
-  char *buf, *p;
-  const char *start;
-  start = input;
-  *end = start;
-
-  do {
-    *end = *end + strcspn(*end+1, eos)+1;
-  } while (*(*end-1) == '\\');
-
-  buf = malloc(*end - start + 1);
-  p = buf;
-  while (start != *end) {
-    *p++ = *start, ++start;
-  }
-  *p = '\0';
-  *end+=1; // Swallow the following \"
-
-  *result = make_string(buf);
 
   return ERROR_OK();
 }
@@ -179,10 +174,13 @@ Error read_expr(const char *input, const char **end, Atom *result)
   } else if (token[0] == ';') {
     // Found a comment. Skip until newline and continue reading.
     return read_expr(*end, end, result);
-  } else if (token[0] == '\"') {
-    return read_string(*end, end, result);
   }
   else {
     return parse_simple(token, *end, result);
   }
+}
+
+Error cutie_parse(const char *input, Atom *result)
+{
+  return read_expr(input, &input, result);
 }

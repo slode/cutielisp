@@ -30,7 +30,7 @@ void load_file(Atom env, const char *path)
 {
   char *text;
 
-  printf("Reading %s...\n", path);
+//  printf("Reading %s...\n", path);
   text = slurp(path);
   if (text) {
     const char *p = text;

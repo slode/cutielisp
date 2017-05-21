@@ -25,7 +25,7 @@ int main()
     Atom sexpr, result;
 
     const char *p = input;
-    err = read_expr(p, &p, &sexpr);
+    err = cutie_parse(p, &sexpr);
 
     if (!ERROR_RAISED(err)) {
       err = eval_expr(sexpr, env, &result);
