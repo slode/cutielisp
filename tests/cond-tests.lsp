@@ -29,6 +29,10 @@
   (T (print "output T 1"))
   (nil (print "output NIL 2"))
   ))
+
+(print 
+  (cond
+    (nil 2) (T 3)))
 ;(merge-sorted-lists (list 3 4) (list 2))
 ;(merge-sorted-lists (3 4) (2))
 
