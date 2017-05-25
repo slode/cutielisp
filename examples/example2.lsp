@@ -1,3 +1,4 @@
+(load "library.lsp")
 (define counter 10)
 (while (> counter 0) 
        (progn 
