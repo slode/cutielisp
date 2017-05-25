@@ -42,10 +42,12 @@ int load_file(Atom env, const char *path)
       Error err = eval_expr(expr, env, &result);
       if (ERROR_RAISED(err)) {
         print_error(err);
+        putchar('\n');
         printf("Error in expression:\n\t");
         print_expr(expr);
         putchar('\n');
         status = 1;
+        break;
       } else {
        // print_expr(result);
        // putchar('\n');
