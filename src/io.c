@@ -32,33 +32,25 @@ int load_file(Atom env, const char *path)
   char *text;
   int status = 0;
 
+//  printf("Reading %s...\n", path);
   text = slurp(path);
   if (text) {
     const char *p = text;
     Atom expr;
-    Error err;
-    while (0) {
-      err = read_expr(p, &p, &expr);
+    while (read_expr(p, &p, &expr).type == Error_OK) {
+      Atom result;
+      Error err = eval_expr(expr, env, &result);
       if (ERROR_RAISED(err)) {
         print_error(err);
         putchar('\n');
-        printf("Error parsing expression:\n\t");
+        printf("Error in expression:\n\t");
         print_expr(expr);
         putchar('\n');
         status = 1;
         break;
-      }
-
-      Atom result;
-      err = eval_expr(expr, env, &result);
-      if (ERROR_RAISED(err)) {
-        print_error(err);
-        putchar('\n');
-        printf("Error evaluating expression:\n\t");
-        print_expr(expr);
-        putchar('\n');
-        status = 2;
-        break;
+      } else {
+       // print_expr(result);
+       // putchar('\n');
       }
     }
     free(text);

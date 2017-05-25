@@ -1,10 +1,8 @@
 (load "library.lsp")
 (load "tests/test-lib.lsp")
 
-(test-false (and))
+(test-true (and))
 (test-false (and T T T nil))
-(test-false (and))
-(test-false (and T nil T))
 (test-false (and nil nil T nil))
 (test-true (and T T T))
 (test-true (and T T))

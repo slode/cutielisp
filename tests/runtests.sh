@@ -18,17 +18,17 @@ do
 done
 
 echo "LISP TESTS" >> tests/tests.log
+
 for i in tests/*-tests.lsp
 do
     if test -f $i
     then
-        if ./bin/cutie ./$i 2>&1 >> tests/tests.log
+        echo $i >> tests/tests.log
+        if ./bin/cutie ./$i 2>&1 | tee -a tests/tests.log | grep "test failed!"
         then
-            echo $i PASS
+            echo $i FAILED
         else
-            echo "ERROR in test $i: here's tests/tests.log"
-            echo "------"
-            tail tests/tests.log
+            echo $i PASS
         fi
     fi
 done
