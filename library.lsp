@@ -7,6 +7,19 @@
 (define (null? x) (eq? x nil))
 (define (not a) (if a nil T))
 (define (to-float a) (* a 1.0))
+(define (and lst)
+  (cond
+    (null? lst) T
+    (= T (car lst)) (and (cdr list))
+    nil nil))
+(define (or lst)
+  (cond
+    (null? lst) nil
+    (null? (car lst)) nil
+    (nil T)))
+
+(define e 2.718281828459045)
+(define pi 3.14159)
 
 (define (exp a n)
   (if (> n 0)

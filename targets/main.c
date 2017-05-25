@@ -8,7 +8,6 @@ int main(int argc, char **argv)
 {
 
   Atom env = setup_env();
-  load_file(env, "library.lsp");
 
   // Execute file mode
   if (argc > 1) {
@@ -20,6 +19,8 @@ int main(int argc, char **argv)
   // Interactive mode
   puts("CutieLisp Version 0.0.1");
   puts("Press Ctrl+c to Exit\n");
+
+  load_file(env, "library.lsp");
 
   char *input = 0;
   while (1) {
