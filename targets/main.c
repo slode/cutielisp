@@ -4,14 +4,22 @@
 #include "readline.h"
 #include "cutie.h"
 
-int main()
+int main(int argc, char **argv)
 {
 
+  Atom env = setup_env();
+  load_file(env, "library.lsp");
+
+  // Execute file mode
+  if (argc > 1) {
+    const char *scriptname = argv[1];
+    int result = load_file(env, scriptname);
+    return result;
+  }
+
+  // Interactive mode
   puts("CutieLisp Version 0.0.1");
   puts("Press Ctrl+c to Exit\n");
-
-  Atom env = setup_env();
-  load_file(env, "library.lisp");
 
   char *input = 0;
   while (1) {

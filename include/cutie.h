@@ -101,6 +101,7 @@ Error builtin_stringsubstr(Atom args, Atom *result);
 Error apply(Atom fn, Atom args, Atom *result);
 Error builtin_apply(Atom args, Atom *result);
 Error builtin_eq(Atom args, Atom *result);
+Error builtin_print(Atom args, Atom *result);
 
 Error builtin_pairp(Atom args, Atom *result);
 Error builtin_stringp(Atom args, Atom *result);
@@ -118,6 +119,7 @@ Error env_set_existing(Atom env, Atom symbol, Atom value);
 
 /* IO */
 void print_expr(Atom atom);
+void print_line();
 void print_error(Error err);
 Error lex(const char *str, const char **start, const char **end);
 Error read_expr(const char *input, const char **end, Atom *result);
@@ -136,7 +138,7 @@ Error apply(Atom fn, Atom args, Atom *result);
 
 /* Load list code */
 char *slurp(const char *path);
-void load_file(Atom env, const char *path);
+int load_file(Atom env, const char *path);
 
 void* cutie_malloc(unsigned int sz);
 void  cutie_free(void* p);

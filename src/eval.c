@@ -182,6 +182,26 @@ Error eval_expr(Atom expr, Atom env, Atom *result)
       }
       return ERROR_OK();
 
+    } else if (strcmp(op.value.symbol, "WHILE") == 0) {
+      Atom cond;
+
+      if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
+        return ERROR(Error_Args, "WHILE requires two arguments.");
+
+      *result = nil;
+      Error err = eval_expr(car(args), env, &cond);
+      Atom res;
+
+      while (!nilp(cond) && !ERROR_RAISED(err)) {
+        err = eval_expr(car(cdr(args)), env, &res);
+        if (ERROR_RAISED(err))
+          return err;
+
+        err = eval_expr(car(args), env, &cond);
+      }
+
+      return err;
+
     } else if (strcmp(op.value.symbol, "LAMBDA") == 0) {
       if (nilp(args) || nilp(cdr(args)))
         return ERROR(Error_Args, "LAMBDA requires two arguments.");

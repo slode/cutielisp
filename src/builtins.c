@@ -244,6 +244,23 @@ Error builtin_stringconcat(Atom args, Atom *result)
   return ERROR_OK();
 }
 
+Error builtin_print(Atom args, Atom *result)
+{
+  if (nilp(args))
+    return ERROR(Error_Args, "Requires at least one argument.");
+
+  Atom a = args;
+  while (!nilp(a)) {
+    Atom b = car(a);
+    print_expr(b);
+    a = cdr(a);
+  }
+  print_line();
+  *result = make_string("T");
+
+  return ERROR_OK();
+}
+
 Error builtin_stringsubstr(Atom args, Atom *result)
 {
   Atom a, b, c;
@@ -373,7 +390,7 @@ Error builtin_numberp(Atom args, Atom *result)
   if (nilp(args) || !nilp(cdr(args)))
     return ERROR(Error_Args, "Requires a single argument.");
 
-  if (car(args).type == ATOM_INTEGER || car(args).type == ATOM_REAL)
+  if (is_numeric(car(args)))
     *result = make_symbol("T");
   else
     *result = nil;

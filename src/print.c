@@ -33,7 +33,7 @@ void print_expr(Atom atom) {
       printf("#<BUILTIN:%p>", atom.value.builtin);
       break;
     case ATOM_STRING:
-      printf("\"%s\"", atom.value.string);
+      printf("%s", atom.value.string);
       break;
     case ATOM_CLOSURE:
       printf("#<CLOSURE>");
@@ -46,6 +46,10 @@ void print_expr(Atom atom) {
       printf("%s", atom.value.symbol);
       break;
   }
+}
+
+void print_line() {
+  puts("");
 }
 
 void print_error(Error err)

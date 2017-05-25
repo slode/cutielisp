@@ -16,19 +16,21 @@ char *slurp(const char *path)
   len = ftell(file);
   fseek(file, 0, SEEK_SET);
 
-  buf = malloc(len);
+  buf = malloc(len+1);
   if (!buf)
     return NULL;
 
   fread(buf, 1, len, file);
+  buf[len] = '\0';
   fclose(file);
 
   return buf;
 }
 
-void load_file(Atom env, const char *path)
+int load_file(Atom env, const char *path)
 {
   char *text;
+  int status = 0;
 
 //  printf("Reading %s...\n", path);
   text = slurp(path);
@@ -43,6 +45,7 @@ void load_file(Atom env, const char *path)
         printf("Error in expression:\n\t");
         print_expr(expr);
         putchar('\n');
+        status = 1;
       } else {
        // print_expr(result);
        // putchar('\n');
@@ -50,5 +53,6 @@ void load_file(Atom env, const char *path)
     }
     free(text);
   }
+  return status;
 }
 

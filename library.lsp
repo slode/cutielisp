@@ -273,3 +273,5 @@
     nil
   )
 )
+
+(define author "Stian Lode")

@@ -28,6 +28,7 @@ Atom setup_env() {
   env_set(env, make_symbol("STRING-LESSP"), make_builtin(builtin_stringless));
   env_set(env, make_symbol("STRING-CONCAT"), make_builtin(builtin_stringconcat));
   env_set(env, make_symbol("STRING-SUBSTR"), make_builtin(builtin_stringsubstr));
+  env_set(env, make_symbol("PRINT"), make_builtin(builtin_print));
   return env;
 }
 

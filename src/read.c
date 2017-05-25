@@ -10,6 +10,7 @@ Error lex(const char *str, const char **start, const char **end)
   const char *delim = "() \t\n";
   const char *prefix = "()\'`";
   const char *eol = "\n";
+  const char *eos = "\"";
 
   str += strspn(str, ws);
 
@@ -26,7 +27,14 @@ Error lex(const char *str, const char **start, const char **end)
     *end = str + (str[1] == '@' ? 2 : 1);
   else if (str[0] == ';')
     *end = str + strcspn(str, eol);
-  else
+  else if (str[0] == '"') {
+    *end = str;
+    do {
+      (*end)++;
+      *end = *end + strcspn(*end, eos);
+    } while (*(*end-1) == '\\');
+    *end = *end + 1;
+  } else
     *end = str + strcspn(str, delim);
 
   return ERROR_OK();
@@ -53,16 +61,12 @@ Error parse_simple(const char *start, const char *end, Atom *result)
   }
 
   /* It is  a string */
-  if (*start == '\"') {
-    const char *eos = "\"";
-    end = ++start;
-    do {
-      end = end + strcspn(end, eos);
-    } while (*(end-1) == '\\');
-
-    buf = malloc(end - start + 1);
+  if (*start == '"') {
+    start++;
+    end--;
+    buf = malloc(end - start);
     p = buf;
-    while (start != end)
+    while (start < end)
       *p++ = *start, ++start;
     *p = '\0';
 
