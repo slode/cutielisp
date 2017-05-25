@@ -1,5 +1,5 @@
 (load "library.lsp")
-(load "test-lib.lsp")
+(load "tests/test-lib.lsp")
 
 (test-false (cond))
 
