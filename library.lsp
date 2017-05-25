@@ -136,9 +136,9 @@
 (define (circular lst)
   (set! (cdr (last lst)) lst))
 
-(define (list-eq a b) 
+(define (list-eq? a b) 
   (if (= (car a) (car b))
-    (list-eq (cdr a) (cdr b))
+    (list-eq? (cdr a) (cdr b))
     nil))
 
 (define (append a b) (foldr cons b a))

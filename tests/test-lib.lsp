@@ -6,3 +6,5 @@
 (define (test-false expr)
   (test-true (not expr)))
 
+(define (test-equal expr expected)
+  (test-true (list-eq? expr expected)))
