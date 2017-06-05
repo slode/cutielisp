@@ -29,6 +29,17 @@ Atom setup_env() {
   env_set(env, make_symbol("STRING-CONCAT"), make_builtin(builtin_stringconcat));
   env_set(env, make_symbol("STRING-SUBSTR"), make_builtin(builtin_stringsubstr));
   env_set(env, make_symbol("PRINT"), make_builtin(builtin_print));
+
+  /* these are implemented in eval */
+  env_set(env, make_symbol("DEFINE"), make_symbol("DEFINE"));
+  env_set(env, make_symbol("DEFMACRO"), make_symbol("DEFMACRO"));
+  env_set(env, make_symbol("IF"), make_symbol("IF"));
+  env_set(env, make_symbol("LAMBDA"), make_symbol("LAMBDA"));
+  env_set(env, make_symbol("LOAD"), make_symbol("LOAD"));
+  env_set(env, make_symbol("PROGN"), make_symbol("PROGN"));
+  env_set(env, make_symbol("QUOTE"), make_symbol("QUOTE"));
+  env_set(env, make_symbol("SET!"), make_symbol("SET!"));
+  env_set(env, make_symbol("WHILE"), make_symbol("WHILE"));
   return env;
 }
 

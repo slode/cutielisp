@@ -1,13 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "readline.h"
 #include "cutie.h"
 
-int main(int argc, char **argv)
+/* static to enable readline completion */
+static Atom env;
+
+char* env_generator(const char* text, int state)
+{
+    static int len;
+		static Atom bs;
+ 
+    if (!state) {
+			len = strlen(text);
+			bs = cdr(env);
+    }
+
+		while (!nilp(bs)) {
+			Atom b = car(bs);
+      if (strncasecmp(car(b).value.symbol, text, len) == 0) {
+				bs = cdr(bs);
+				return strdup(car(b).value.symbol);
+			}
+			bs = cdr(bs);
+		}
+
+    return ((char *)NULL);
+}
+
+static char** env_completion(const char * text, int start, int end)
 {
 
-  Atom env = setup_env();
+		(void) start; (void) end;
+    rl_attempted_completion_over = 1;
+    return rl_completion_matches(text, env_generator);
+}
+ 
+
+int main(int argc, char **argv)
+{
+  env = setup_env();
 
   // Execute file mode
   if (argc > 1) {
@@ -15,6 +49,8 @@ int main(int argc, char **argv)
     int result = load_file(env, scriptname);
     return result;
   }
+
+	rl_attempted_completion_function = env_completion;
 
   // Interactive mode
   puts("CutieLisp Version 0.0.1");
