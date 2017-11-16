@@ -1,6 +1,6 @@
 CC=gcc #clang
 CXX=g++ #clang
-CFLAGS=-g -fPIC -Wall -Wextra -Isrc -Iinclude $(OPTFLAGS)
+CFLAGS=-g -O2 -fPIC -Wall -Wextra -Isrc -Iinclude $(OPTFLAGS)
 CXXFLAGS=-g -fPIC -Wall -std=c++11 -Wextra -Isrc -Iinclude $(OPTFLAGS)
 LDFLAGS=-lreadline  -lstdc++
 LIBS=-ldl $(OPTLIBS)
