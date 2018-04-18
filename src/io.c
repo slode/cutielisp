@@ -21,6 +21,7 @@ char *slurp(const char *path)
     return NULL;
 
   int st = fread(buf, 1, len, file);
+  (void) st;
   buf[len] = '\0';
   fclose(file);
 
