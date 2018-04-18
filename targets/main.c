@@ -47,7 +47,6 @@ int main(int argc, char **argv)
   if (argc > 1) {
     const char *scriptname = argv[1];
     int result = load_file(env, scriptname);
-    cutie_mem();
     return result;
   }
 
