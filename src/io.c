@@ -20,7 +20,7 @@ char *slurp(const char *path)
   if (!buf)
     return NULL;
 
-  fread(buf, 1, len, file);
+  int st = fread(buf, 1, len, file);
   buf[len] = '\0';
   fclose(file);
 

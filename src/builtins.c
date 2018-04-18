@@ -314,7 +314,7 @@ Error builtin_apply(Atom args, Atom *result)
 Error builtin_eq(Atom args, Atom *result)
 {
   Atom a, b;
-  int eq;
+  int eq=0;
 
   if (nilp(args) || nilp(cdr(args)) || !nilp(cdr(cdr(args))))
     return ERROR(Error_Args, "Requires two arguments.");

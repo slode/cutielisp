@@ -61,6 +61,8 @@ extern const Atom nil;
 #define cdr(p) ((p).value.pair->atom[1])
 
 int error_raised(Error err);
+Error make_error_ok(
+  int type);
 Error make_error(
   int type,
   const char *message,
@@ -69,7 +71,7 @@ Error make_error(
   int line_number);
 
 #define ERROR(type, message) make_error(type, message, __FILE__, __FUNCTION__, __LINE__)
-#define ERROR_OK() make_error(0, "", __FILE__, __FUNCTION__, __LINE__)
+#define ERROR_OK() make_error_ok(0)
 #define ERROR_RAISED(err) error_raised((err))
 
 Atom cons(Atom car_val, Atom cdr_val);
@@ -142,6 +144,7 @@ int load_file(Atom env, const char *path);
 
 void* cutie_malloc(unsigned int sz);
 void  cutie_free(void* p);
+void  cutie_mem();
 
 #ifdef __cplusplus
 }

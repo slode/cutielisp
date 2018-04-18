@@ -156,7 +156,7 @@
 (define (> a b) (if (< a b) nil T))
 (define (abs x) (if (< x 0) (- 0 x) x))
 (define (min x y) (if (> x y) y x))
-(define (max x y) (min y x))
+(define (max x y) (if (< x y) y x))
 (define (null? x) (eq? x nil))
 (define (not a) (if a nil T))
 (define (to-float a) (* a 1.0))

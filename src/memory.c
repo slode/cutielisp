@@ -19,3 +19,7 @@ void cutie_free(void *p) {
 //  printf("Freed memory at %li. (%li)\n", (long)p, allocations);
 }
 
+void cutie_mem() {
+  printf("(allocations %li)\n", allocations);
+  
+}

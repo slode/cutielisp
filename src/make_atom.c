@@ -4,6 +4,13 @@
 #include "cutie.h"
 
 
+Error make_error_ok(int type)
+{
+  Error err;
+  err.type = type;
+  return err;
+}
+
 Error make_error(
     int type,
     const char *message,

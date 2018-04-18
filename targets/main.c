@@ -11,21 +11,21 @@ static Atom env;
 char* env_generator(const char* text, int state)
 {
     static int len;
-		static Atom bs;
+    static Atom bs;
  
     if (!state) {
-			len = strlen(text);
-			bs = cdr(env);
+      len = strlen(text);
+      bs = cdr(env);
     }
 
-		while (!nilp(bs)) {
-			Atom b = car(bs);
+    while (!nilp(bs)) {
+      Atom b = car(bs);
       if (strncasecmp(car(b).value.symbol, text, len) == 0) {
-				bs = cdr(bs);
-				return strdup(car(b).value.symbol);
-			}
-			bs = cdr(bs);
-		}
+        bs = cdr(bs);
+        return strdup(car(b).value.symbol);
+      }
+      bs = cdr(bs);
+    }
 
     return ((char *)NULL);
 }
@@ -33,11 +33,11 @@ char* env_generator(const char* text, int state)
 static char** env_completion(const char * text, int start, int end)
 {
 
-		(void) start; (void) end;
+    (void) start; (void) end;
     rl_attempted_completion_over = 1;
     return rl_completion_matches(text, env_generator);
 }
- 
+
 
 int main(int argc, char **argv)
 {
@@ -47,10 +47,11 @@ int main(int argc, char **argv)
   if (argc > 1) {
     const char *scriptname = argv[1];
     int result = load_file(env, scriptname);
+    cutie_mem();
     return result;
   }
 
-	rl_attempted_completion_function = env_completion;
+  rl_attempted_completion_function = env_completion;
 
   // Interactive mode
   puts("CutieLisp Version 0.0.1");
